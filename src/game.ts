@@ -1,5 +1,5 @@
 import { Display } from "./lib/ROT/index.js"
-import { Screen } from "./screen.js"
+import Screen from "./screen.js"
 
 
 export class Game {

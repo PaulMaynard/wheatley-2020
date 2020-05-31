@@ -2,7 +2,7 @@ import { Display, KEYS } from "./lib/ROT/index.js";
 
 const _noop = () => {}
 
-export abstract class Screen {
+export default abstract class Screen {
     enter(): void {}
     exit(): void {}
     render(display: Display): void {}
@@ -32,8 +32,9 @@ export class MenuScreen extends Screen {
         )
         y++
         this.options.forEach( ([opt, _], i) => {
-            if (i == this.active) opt = '%c{gray}[%c{}' + opt + '%c{gray}]%c{}'
-            else opt = opt
+            if (i == this.active){
+                opt = '%c{gray}[%c{}' + opt + '%c{gray}]%c{}'
+            }
             display.drawText(x - (opt.replace(/%c\{.*?\}/g, '').length >> 1), y++, opt)
         })
     }
