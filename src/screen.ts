@@ -1,5 +1,6 @@
 import { Display, KEYS } from "./lib/ROT/index.js";
 
+const _noop = () => {}
 
 export abstract class Screen {
     enter(): void {}
@@ -10,11 +11,15 @@ export abstract class Screen {
 
 export class MenuScreen extends Screen {
     public active: number = 0
+    public options: [string, () => void][]
     constructor(
         public title: string[],
-        public options: [string, () => void][]
+        options: (string | [string, () => void])[]
     ) {
         super()
+        this.options = options.map(o =>
+            (typeof o == 'string') ? [o, _noop] : o
+        )
         this.title = title
     }
     render(display: Display) {
@@ -33,7 +38,6 @@ export class MenuScreen extends Screen {
         })
     }
     handle(key: number) {
-        console.log(key)
         switch (key) {
             case KEYS.VK_UP:
                 this.active = (this.active - 1 + this.options.length) % this.options.length
