@@ -1,5 +1,6 @@
 import { Display } from "./lib/ROT/index.js"
-import { MenuScreen, Screen } from "./screen.js"
+import { MenuScreen } from "./screen.js"
+import { Game } from "./game.js"
 
 let o = {
 	width: 80,
@@ -9,25 +10,13 @@ let o = {
 let display = new Display(o)
 document.body.appendChild(display.getContainer())
 
-let screens: Screen[] = [
+let g = new Game(display, [
     new MenuScreen([
         "+-------------------------------+",
         "|Welcome to %c{red}Hell%c{} Simulator 2020!|",
         "+-------------------------------+"
     ], [
-        ["Play!", () => {alert("foo")}],
+        ["Play!", () => {alert(1)}]
     ])
-]
-function activeScreen() {
-    return screens[screens.length - 1]
-}
-function render() {
-    display.clear()
-    activeScreen().render(display)
-}
-
-window.addEventListener("keydown", function(e) {
-    activeScreen().handle(e.keyCode)
-    render()
-})
-render()
+])
+g.render()
