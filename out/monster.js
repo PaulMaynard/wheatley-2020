@@ -18,11 +18,11 @@ var Damage;
     Damage["COVID"] = "coronavirus";
 })(Damage || (Damage = {}));
 let deaths = {
-    [Damage.LECTURE]: ['are bored to death', 'is bored to death'],
+    [Damage.LECTURE]: ['have failed', 'has failed'],
     [Damage.MATH]: ['are left as an exercise for the reader', 'is left as an exercise for the reader'],
     [Damage.RECURSION]: ['are sent into an infinite loop', 'is sent into an infinite loop'],
-    [Damage.CRINGE]: ['have been owned', 'has been owned'],
-    [Damage.COVID]: ['dies of Coronavirus', 'dies of Coronavirus'],
+    [Damage.CRINGE]: ['loose subscriber', 'looses subscriber'],
+    [Damage.COVID]: ['die of Coronavirus', 'dies of Coronavirus'],
 };
 export default class Monster extends Tile {
     constructor(name, ch, fg, bg, props) {
@@ -163,9 +163,13 @@ let mons = [
                 desc: 'a math professor',
                 sight: 9,
                 maxhealth: 10,
-                weapons: [[die('1d8'), ['disproves', 'measures', 'calculates', 'integrates', 'divides'], Damage.MATH]],
+                weapons: [
+                    [die('1d8'), ['disproves', 'measures', 'calculates', 'integrates', 'divides'], Damage.MATH],
+                    [die('1d8'), ['recurses', 'performs induction on'], Damage.RECURSION]
+                ],
                 resistance: {
-                    [Damage.LECTURE]: 2
+                    [Damage.LECTURE]: 2,
+                    [Damage.RECURSION]: 3
                 }
             }]],
     [.2, ['student', '@', 'green', {
@@ -195,7 +199,6 @@ export let player = new Monster("Player", '@', 'goldenrod', {
     sight: 10,
     maxhealth: 20,
     weapons: [
-        [die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL],
         [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
     ]
 });
