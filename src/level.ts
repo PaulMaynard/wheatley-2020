@@ -6,6 +6,8 @@ import Monster, { genMonster } from './monster.js'
 import Point from './point.js'
 import FOV from './lib/ROT/fov/fov.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
+import Scheduler from './lib/ROT/scheduler/scheduler.js'
+import Speed from './lib/ROT/scheduler/speed.js'
 
 enum Visibility {
     UNSEEN,
@@ -18,6 +20,7 @@ export class Level {
     public seen: Visibility[][]
     public monsters: Monster[]
     public start: Point
+    public scheduler: Scheduler
     constructor(readonly width: number, readonly height: number, nmonsters: number,
                 generator: { new(w: number, h: number): Dungeon }) {
         this.tiles = new Array(height)
@@ -26,6 +29,8 @@ export class Level {
             this.tiles[y] = new Array(width)
             this.seen[y] = new Array(width)
         }
+
+        this.scheduler = new Speed()
 
         let gen = new generator(width, height)
         gen.create((x, y, type) => {
@@ -50,6 +55,7 @@ export class Level {
                 if (!this.tiles[y][x].props.impassable) {
                     mon.pos = new Point(x, y)
                     this.monsters.push(mon)
+                    this.scheduler.add(mon, true)
                     break
                 }
             }
@@ -69,7 +75,7 @@ export class Level {
     tile(p: Point): Tile {
         for (let m of this.monsters) {
             if (m.pos.equals(p)) {
-                return m.tile
+                return m
             }
         }
         return this.tiles[p.y][p.x]
@@ -109,17 +115,21 @@ export class LevelScreen extends Screen {
             display.getOptions().height
         )
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
-        this.level.iter(offset, offset.plus(dim), (tile, p) => {
-            if (this.level.seen[p.y][p.x] == Visibility.VISIBLE) {
-                tile.draw(display, p.minus(offset))
-                this.level.seen[p.y][p.x] = Visibility.SEEN
-            } else if (this.level.seen[p.y][p.x] == Visibility.SEEN) {
-                tile.draw(display, p.minus(offset), 'gray')
+        for (let y = 0; y < dim.y; y++) {
+            for (let x = 0; x < dim.x; x++) {
+                let p = new Point(x, y)
+                let po = p.plus(offset)
+                if (this.level.seen[po.y][po.x] == Visibility.VISIBLE) {
+                    this.level.tile(po).draw(display, p)
+                    this.level.seen[po.y][po.x] = Visibility.SEEN
+                } else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
+                    this.level.tile(po).draw(display, p, 'gray')
+                }
             }
-        })
+        }
         this.level.monsters.forEach(mon => {
             if (this.level.seen[mon.pos.y][mon.pos.x]) {
-                mon.tile.draw(display, mon.pos.minus(offset))
+                mon.draw(display, mon.pos.minus(offset))
             }
         })
     }
@@ -169,14 +179,7 @@ export class LevelScreen extends Screen {
             case KEYS.VK_X:
                 this.game.push(new LookScreen(this, this.player.pos))
         }
-        let tile = this.level.tiles[y][x]
-        if (!tile.props.impassable) {
-            this.player.pos = new Point(x, y)
-            this.center = this.player.pos
-        }
-        if (tile.props.open) {
-            this.level.tiles[y][x] = tile.props.open
-        }
+        this.player.move(this.level, new Point(x, y))
     }
 }
 
@@ -191,10 +194,11 @@ class LookScreen extends Screen {
             display.getOptions().height
         )
         let offset = this.scr.center.minus(new Point(dim.x >> 1, dim.y >> 1))
+        let pos = this.pos.minus(offset)
 
-        new Tile('X', 'lightblue').draw(display, this.pos.minus(offset))
+        new Tile('X', 'lightblue').draw(display, pos)
         if (this.scr.level.seen[this.pos.y][this.pos.x] == Visibility.SEEN) {
-            display.drawText(0, 0, "You see " + this.scr.level.tile(this.pos).props.desc)
+            display.drawText(pos.x+2, pos.y, "You see " + this.scr.level.tile(this.pos).props.desc)
         }
     }
     handle(key: number) {

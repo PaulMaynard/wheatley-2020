@@ -1,49 +1,82 @@
-import Tile from './tile.js'
+import Tile, { TileProps } from './tile.js'
 import Point from './point.js'
 import { RNG } from './lib/ROT/index.js'
+import { Level } from './level.js'
 
-interface MonsterProps {
+interface MonsterProps extends TileProps {
     speed?: number
     inactive?: boolean
     friendly?: boolean
 }
 
-export default class Monster {
+export default class Monster extends Tile {
+    name: string
     pos: Point
+    props: MonsterProps
+    constructor(name: string, tile: Tile, props?: MonsterProps)
+    constructor(name: string, ch: string, fg: string, bg: string, props?: MonsterProps)
+    constructor(name: string, ch: string, fg: string, props?: MonsterProps)
     constructor(
-        public name: string,
-        public tile: Tile,
-        public props: MonsterProps = {}
-    ) {}
+        name: string,
+        ch: string | Tile, fg?: string | MonsterProps, bg?: string | MonsterProps,
+        props?: MonsterProps
+    ) {
+        if (typeof fg != 'string') {
+            props = fg
+            fg = ''
+        }
+        if (typeof bg != 'string') {
+            props = bg
+            bg = ''
+        }
+        if (typeof ch != 'string') {
+            let tile = ch
+            ch = tile.ch
+            fg = tile.fg
+            bg = tile.bg
+        }
+        super(ch, fg, bg, props)
+        this.name = name
+    }
     getSpeed(): number {
         return this.props.speed || 100
     }
+    act(level: Level) {
+
+    }
+    move(level: Level, pos: Point) {
+        let tile = level.tile(pos)
+        if (!tile.props.impassable) {
+            this.pos = pos
+        }
+        if (tile.props.open) {
+            level.tiles[pos.y][pos.x] = tile.props.open
+        }
+    }
 }
 
-let roachTile = new Tile('r', 'brown', {desc: "a massive roach"})
-let beeTile = new Tile('B', 'yellow', {desc: "a friendly bee"})
-let waspTile = new Tile('w', 'yellow', {desc: "an angry wasp"})
-let profTile = new Tile('P', 'blue', {desc: "a wandering professor"})
-let studTile = new Tile('@', 'green', {desc: "a lost student"})
+let mons: [number, [string, string, string, MonsterProps]][] = [
+    [.3, ['roach', 'r', 'brown', {desc: 'a massive roach'}]],
+    [.1, ['bee', 'B', 'yellow', {desc: 'a friendly bee'}]],
+    [.1, ['wasp', 'w', 'yellow', {desc: 'an angry wasp'}]],
+    [.2, ['professor', 'P', 'lightblue', {desc: 'a wandering professor'}]],
+    [.3, ['student', '@', 'green', {desc: 'a lost student'}]]
+]
+let weight = mons.map(m => m[0]).reduce((a, b) => a + b, 0)
 
 export function genMonster() {
-    let pct = RNG.getUniform()
-    if (pct < .3) {
-        return new Monster("roach", roachTile)
-    } else if (pct < .4) {
-        return new Monster("bee", beeTile, {friendly: true})
-    } else if (pct < .5) {
-        return new Monster("wasp", waspTile)
-    } else if (pct < .7) {
-        return new Monster("professor", profTile)
-    } else {
-        return new Monster("student", studTile, {friendly: true})
+    let pct = RNG.getUniform() * weight
+    for (let [w, m] of mons) {
+        pct -= w
+        if (pct < 0) {
+            return new Monster(...m)
+        }
     }
 }
 
 
 export let player = new Monster(
     "Player",
-    new Tile('@', 'goldenrod', {desc: 'yourself'}),
-    {inactive: true}
+    '@', 'goldenrod',
+    {inactive: true, desc: 'you'}
 )
