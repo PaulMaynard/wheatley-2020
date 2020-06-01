@@ -182,9 +182,10 @@ export class LevelScreen extends Screen {
             break
             case KEYS.VK_X:
                 this.game.push(new LookScreen(this, this.player.pos))
-            break
+            return
             case KEYS.VK_SLASH:
                 this.game.push(new HelpScreen())
+            return
             default:
                 return
         }

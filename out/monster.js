@@ -69,6 +69,7 @@ export default class Monster extends Tile {
     }
     hit(mon) {
         let weapon = RNG.getItem(this.props.weapons);
+        console.log(weapon);
         let dam = weapon[0].roll();
         let res = 0;
         if (mon.props.resistance && weapon[2] in mon.props.resistance) {
@@ -168,7 +169,8 @@ export let player = new Monster("Player", '@', 'goldenrod', {
     sight: 10,
     maxhealth: 20,
     weapons: [
-        [die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL][die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at'], Damage.CRINGE]
+        [die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL],
+        [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at'], Damage.CRINGE]
     ]
 });
 //# sourceMappingURL=monster.js.map
