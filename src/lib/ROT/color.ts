@@ -3,7 +3,7 @@ import RNG from "./rng.js";
 
 type Color = [number, number, number];
 
-export function	fromString(str: string) {
+export function	fromString(str: string): Color {
 	let cached:Color, r;
 	if (str in CACHE) {
 		cached = CACHE[str];

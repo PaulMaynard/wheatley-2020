@@ -13,9 +13,9 @@ import { Game } from './game.js'
 import HelpScreen from './help.js'
 
 enum Visibility {
-    UNSEEN,
-    SEEN,
-    VISIBLE
+    UNSEEN = 0,
+    SEEN = -1,
+    VISIBLE = 1
 }
 
 export class Level {
@@ -106,7 +106,7 @@ export class LevelScreen extends Screen {
     }
     render(display: Display) {
         this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
-            this.level.seen[y][x] = Visibility.VISIBLE
+            this.level.seen[y][x] = Visibility.VISIBLE + v
         })
 
         let dim = new Point(
@@ -115,13 +115,18 @@ export class LevelScreen extends Screen {
         )
         let p = new Point(0, 0)
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
+        console.log(this.level.seen[this.player.pos.y][this.player.pos.x])
         for (let y = 0; y < dim.y-5; y++) {
             for (let x = 0; x < dim.x; x++) {
                 p = new Point(x, y)
                 let po = p.plus(offset)
                 if (this.level.in(po)) {
-                    if (this.level.seen[po.y][po.x] == Visibility.VISIBLE) {
-                        this.level.tile(po).draw(display, p)
+                    if (this.level.seen[po.y][po.x] >= Visibility.VISIBLE) {
+                        let tile = this.level.tile(po)
+                        let col = Color.fromString(tile.fg)
+                        col = Color.interpolate(col, Color.fromString('gray'),
+                            this.level.seen[po.y][po.x] * .06)
+                        tile.draw(display, p, Color.toHex(col))
                         this.level.seen[po.y][po.x] = Visibility.SEEN
                     } else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
                         this.level.tile(po).draw(display, p, 'gray')

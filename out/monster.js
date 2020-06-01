@@ -69,7 +69,6 @@ export default class Monster extends Tile {
     }
     hit(mon) {
         let weapon = RNG.getItem(this.props.weapons);
-        console.log(weapon);
         let dam = weapon[0].roll();
         let res = 0;
         if (mon.props.resistance && weapon[2] in mon.props.resistance) {
