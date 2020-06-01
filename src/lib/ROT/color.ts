@@ -31,7 +31,7 @@ export function	fromString(str: string): Color {
 		CACHE[str] = cached;
 	}
 
-	return cached.slice();
+	return cached.slice() as Color;
 }
 
 /**

@@ -12,15 +12,10 @@ import RecursiveShadowcasting from './lib/ROT/fov/recursive-shadowcasting.js'
 import { Game } from './game.js'
 import HelpScreen from './help.js'
 
-enum Visibility {
-    UNSEEN = 0,
-    SEEN = -1,
-    VISIBLE = 1
-}
 
 export class Level {
     tiles: Tile[][]
-    seen: Visibility[][]
+    seen: (number | Tile)[][]
     monsters: Monster[]
     start: Point
     fov: FOV
@@ -105,31 +100,39 @@ export class LevelScreen extends Screen {
         this.player.pos = this.level.start
     }
     render(display: Display) {
-        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
-            this.level.seen[y][x] = Visibility.VISIBLE + v
-        })
-
         let dim = new Point(
             display.getOptions().width,
             display.getOptions().height
         )
-        let p = new Point(0, 0)
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
-        console.log(this.level.seen[this.player.pos.y][this.player.pos.x])
+
         for (let y = 0; y < dim.y-5; y++) {
             for (let x = 0; x < dim.x; x++) {
-                p = new Point(x, y)
+                let p = new Point(x, y)
+                let po = p.plus(offset)
+                if (typeof this.level.seen[po.y][po.x] == 'number') {
+                    this.level.seen[po.y][po.x] = this.level.tile(po)
+                }
+            }
+        }
+        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
+            this.level.seen[y][x] = 1 + v
+        })
+
+        for (let y = 0; y < dim.y-5; y++) {
+            for (let x = 0; x < dim.x; x++) {
+                let p = new Point(x, y)
                 let po = p.plus(offset)
                 if (this.level.in(po)) {
-                    if (this.level.seen[po.y][po.x] >= Visibility.VISIBLE) {
+                    let vis = this.level.seen[po.y][po.x]
+                    if (vis instanceof Tile) {
+                        vis.draw(display, p, 'gray')
+                    } else if (vis > 0) {
                         let tile = this.level.tile(po)
                         let col = Color.fromString(tile.fg)
                         col = Color.interpolate(col, Color.fromString('gray'),
-                            this.level.seen[po.y][po.x] * .06)
+                            vis * .06)
                         tile.draw(display, p, Color.toHex(col))
-                        this.level.seen[po.y][po.x] = Visibility.SEEN
-                    } else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
-                        this.level.tile(po).draw(display, p, 'gray')
                     }
                 }
             }
@@ -247,7 +250,7 @@ class LookScreen extends Screen {
         let pos = this.pos.minus(offset)
 
         new Tile('X', 'lightblue').draw(display, pos)
-        if (this.scr.level.seen[this.pos.y][this.pos.x] == Visibility.SEEN) {
+        if (this.scr.level.seen[this.pos.y][this.pos.x] > 0) {
             display.drawText(pos.x+2, pos.y, "You see " + this.scr.level.tile(this.pos).props.desc)
         }
     }

@@ -64,7 +64,11 @@ export default class Monster extends Tile {
             level.tiles[pos.y][pos.x] = tile.props.open;
         }
         if (tile instanceof Monster && this.props.weapons && tile.health) {
-            this.hit(tile).forEach(m => level.game.log(m));
+            let log = this.hit(tile);
+            level.seen[pos.y][pos.x];
+            if (level.seen[pos.y][pos.x] > 0) {
+                log.forEach(m => level.game.log(m));
+            }
         }
     }
     hit(mon) {
