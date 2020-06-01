@@ -7,6 +7,7 @@ export interface TileProps {
     open?: Tile
     close?: Tile
     walk?: Tile
+    desc: string
 }
 
 export default class Tile {
@@ -17,8 +18,8 @@ export default class Tile {
     constructor(
         public ch: string,
         public fg: string,
-        bg: string | TileProps = {},
-        props: TileProps = {}
+        bg: string | TileProps = {desc: ''},
+        props: TileProps = {desc: ''}
     ) {
         if (typeof bg != 'string') {
             props = bg
@@ -33,10 +34,19 @@ export default class Tile {
 }
 
 export namespace tiles {
-    export let wall = new Tile('#', 'white', {impassable: true, opaque: true})
-    export let floor = new Tile('.', 'white')
-    export let opendoor = new Tile(',', 'brown')
+    export let wall = new Tile('#', 'white', {
+        desc: 'a wall',
+        impassable: true,
+        opaque: true
+    })
+    export let floor = new Tile('.', 'white', {
+        desc: 'a floor'
+    })
+    export let opendoor = new Tile('\'', 'brown', {
+        desc: 'an opened door'
+    })
     export let door = new Tile('+', 'brown', {
+        desc: 'a door',
         impassable: true,
         opaque: true,
         open: opendoor

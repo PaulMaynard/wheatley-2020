@@ -11,4 +11,7 @@ export default class Point {
     minus(p: Point) {
         return new Point(this.x - p.x, this.y - p.y)
     }
+    equals(p: Point) {
+        return this.x == p.x && this.y == p.y
+    }
 }
