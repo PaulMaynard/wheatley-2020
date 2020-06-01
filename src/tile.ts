@@ -1,5 +1,6 @@
 import { Display } from "./lib/ROT/index"
 import Point from "./point"
+import Monster from "./monster"
 
 export interface TileProps {
     impassable?: boolean
@@ -13,8 +14,8 @@ export interface TileProps {
 export default class Tile {
     bg: string
     props: TileProps
-    constructor(ch: string, fg: string, bg: string, props?: TileProps);
-    constructor(ch: string, fg: string, properties?: TileProps);
+    constructor(ch: string, fg: string, bg: string, props?: TileProps)
+    constructor(ch: string, fg: string, properties?: TileProps)
     constructor(
         public ch: string,
         public fg: string,
@@ -23,7 +24,7 @@ export default class Tile {
     ) {
         if (typeof bg != 'string') {
             props = bg
-            bg = 'black'
+            bg = ''
         }
         this.bg = bg
         this.props = props
