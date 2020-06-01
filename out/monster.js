@@ -53,14 +53,41 @@ export default class Monster extends Tile {
         return this.props.speed || 100;
     }
     act(level) {
-        if (!(this.props.inactive || this.props.player)) {
-            let p = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1));
-            if (!p.equals(new Point(0, 0))) {
-                this.move(level, this.pos.plus(p));
+        if (!(this.props.inactive || this instanceof Player)) {
+            let mv;
+            if (!this.props.friendly) {
+                let ppos = null;
+                level.fov.compute(this.pos.x, this.pos.y, this.props.sight, (x, y, v) => {
+                    let p = new Point(x, y);
+                    if (level.in(p) && level.tile(p) == player) {
+                        ppos = p;
+                    }
+                });
+                if (ppos) {
+                    mv = ppos.minus(this.pos);
+                    if (mv.x > 0) {
+                        mv.x = 1;
+                    }
+                    else if (mv.x < 0) {
+                        mv.x = -1;
+                    }
+                    if (mv.y > 0) {
+                        mv.y = 1;
+                    }
+                    else if (mv.y < 0) {
+                        mv.y = -1;
+                    }
+                }
             }
-            // level.fov.compute(this.pos.x, this.pos.y, this.props.sight, (x, y, v) => {
-            //     if
-            // })
+            if (!mv) {
+                let p = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1));
+                if (!p.equals(new Point(0, 0))) {
+                    mv = p;
+                }
+            }
+            if (mv) {
+                this.move(level, this.pos.plus(mv));
+            }
         }
     }
     move(level, pos) {
@@ -68,10 +95,10 @@ export default class Monster extends Tile {
         if (!tile.props.impassable) {
             this.pos = pos;
         }
-        if (tile.props.open) {
+        else if (tile.props.open) {
             level.tiles[pos.y][pos.x] = tile.props.open;
         }
-        if (tile instanceof Monster && this.props.weapons && tile.health) {
+        else if (tile instanceof Monster && this.props.weapons && tile.health) {
             let log = this.hit(tile);
             level.seen[pos.y][pos.x];
             if (level.seen[pos.y][pos.x] > 0) {
@@ -91,11 +118,11 @@ export default class Monster extends Tile {
             mon.health -= dam;
         }
         let msgs = [];
-        if (this.props.player) {
+        if (this instanceof Player) {
             msgs.push('You ' + RNG.getItem(weapon[1]) + ' the ' + mon.name +
                 ' for ' + dam + ' damage');
         }
-        else if (mon.props.player) {
+        else if (mon instanceof Player) {
             msgs.push('The ' + this.name + ' ' + RNG.getItem(weapon[1]) +
                 ' you for ' + dam + ' damage');
         }
@@ -105,7 +132,7 @@ export default class Monster extends Tile {
         }
         if (mon.health <= 0) {
             if (weapon[2] in deaths) {
-                if (mon.props.player) {
+                if (mon instanceof Player) {
                     msgs.push('You ' + deaths[weapon[2]][0] + '!');
                 }
                 else {
@@ -113,7 +140,7 @@ export default class Monster extends Tile {
                 }
             }
             else {
-                if (mon.props.player) {
+                if (mon instanceof Player) {
                     msgs.push('You die!');
                 }
                 else {
@@ -136,7 +163,7 @@ let mons = [
                 sight: 5,
                 friendly: true,
                 maxhealth: 2,
-                weapons: [[die('1d6'), ['stings'], Damage.POISON]],
+                weapons: [[die('1d4'), ['stings'], Damage.POISON]],
                 resistance: {
                     [Damage.WEED]: -2
                 }
@@ -144,8 +171,9 @@ let mons = [
     [.1, ['wasp', 'w', 'yellow', {
                 desc: 'an angry wasp',
                 sight: 5,
+                speed: 200,
                 maxhealth: 2,
-                weapons: [[die('1d6'), ['stings'], Damage.POISON]],
+                weapons: [[die('1d4'), ['stings'], Damage.POISON]],
                 resistance: {
                     [Damage.WEED]: -2
                 }
@@ -174,9 +202,10 @@ let mons = [
             }]],
     [.2, ['student', '@', 'green', {
                 desc: 'a lost student',
+                friendly: true,
                 sight: 10,
                 maxhealth: 6,
-                weapons: [[die('1d6'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
+                weapons: [[die('1d12'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
                 resistance: {
                     [Damage.LECTURE]: -2,
                     [Damage.WEED]: 2
@@ -193,9 +222,11 @@ export function genMonster() {
         }
     }
 }
-export let player = new Monster("Player", '@', 'goldenrod', {
-    player: true,
+class Player extends Monster {
+}
+export let player = new Player("player", '@', 'goldenrod', {
     desc: 'yourself',
+    speed: 100,
     sight: 10,
     maxhealth: 20,
     weapons: [

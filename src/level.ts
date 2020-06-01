@@ -5,12 +5,11 @@ import Screen from './screen.js'
 import Monster, { genMonster } from './monster.js'
 import Point from './point.js'
 import FOV from './lib/ROT/fov/fov.js'
-import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 import Scheduler from './lib/ROT/scheduler/scheduler.js'
 import Speed from './lib/ROT/scheduler/speed.js'
-import RecursiveShadowcasting from './lib/ROT/fov/recursive-shadowcasting.js'
 import { Game } from './game.js'
 import HelpScreen from './help.js'
+import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 
 
 export class Level {
@@ -19,7 +18,7 @@ export class Level {
     monsters: Monster[]
     start: Point
     fov: FOV
-    scheduler: Scheduler
+    scheduler: Scheduler<Monster>
     constructor(public game: Game,
                 readonly width: number, readonly height: number, nmonsters: number,
                 generator: { new(w: number, h: number): Dungeon }) {
@@ -31,7 +30,7 @@ export class Level {
         }
 
         this.scheduler = new Speed()
-        this.fov = new RecursiveShadowcasting((x, y) => {
+        this.fov = new PreciseShadowcasting((x, y) => {
             let p = new Point(x, y)
             return this.in(p) && !this.tile(p).props.opaque
         })
@@ -58,19 +57,22 @@ export class Level {
                 let y = RNG.getUniformInt(0, this.height - 1)
                 if (!this.tiles[y][x].props.impassable) {
                     mon.pos = new Point(x, y)
-                    this.monsters.push(mon)
-                    this.scheduler.add(mon, true)
+                    this.addMonster(mon)
                     break
                 }
             }
         }
+    }
+    addMonster(mon: Monster) {
+        this.monsters.push(mon)
+        this.scheduler.add(mon, true)
     }
     iter(lb: Point, ub: Point, cb: (t: Tile, p: Point) => void) {
         for (let y = 0; y < this.height; y++) {
             if ((lb && lb.y < y) || (ub && y < ub.y)) {
                 for (let x = 0; x < this.width; x++) {
                     if ((lb && lb.x < x) || (ub && x < ub.x)) {
-                        cb(this.tiles[y][x], new Point(x, y))
+                        cb(this.tile(new Point(x, y)), new Point(x, y))
                     }
                 }
             }
@@ -96,7 +98,7 @@ export class LevelScreen extends Screen {
         this.center = level.start
     }
     enter() {
-        this.level.monsters.push(this.player)
+        this.level.addMonster(this.player)
         this.player.pos = this.level.start
         this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!")
     }
@@ -207,10 +209,17 @@ export class LevelScreen extends Screen {
         // if (this.player.pos.minus(this.center).chebyshev() > 5) {
         this.center = this.player.pos
         // }
-        for (let m of this.level.monsters) {
+        let m: Monster
+        while (((m = this.level.scheduler.next()) != this.player)) {
+            if (this.level.seen[m.pos.y][m.pos.x] > 0) {
+                (() => {})()
+            }
             if (m.health > 0) {
                 m.act(this.level)
             }
+        }
+        if (this.player.health <= 0) {
+            this.game.pop()
         }
     }
 }

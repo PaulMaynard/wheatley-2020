@@ -6,12 +6,11 @@ import { Game } from "./game.js";
 import { LevelScreen, Level } from "./level.js";
 import { player } from "./monster.js";
 // Display.Rect.cache = true
-let o = {
+let display = new Display({
     width: 100,
     height: 45,
-    fontSize: 18
-};
-let display = new Display(o);
+    fontSize: 18,
+});
 document.body.appendChild(display.getContainer());
 let game = new Game(display, [
     new MenuScreen([
@@ -20,6 +19,7 @@ let game = new Game(display, [
         "+-----------------------------------+"
     ], [
         ["Play!", () => {
+                player.health = player.props.maxhealth;
                 game.push(new LevelScreen(player, new Level(game, 200, 200, 40, Digger)));
             }],
         ["Help", () => {

@@ -8,12 +8,11 @@ import { player } from "./monster.js"
 
 // Display.Rect.cache = true
 
-let o = {
-	width: 100,
+let display = new Display({
+    width: 100,
     height: 45,
-    fontSize: 18
-}
-let display = new Display(o)
+    fontSize: 18,
+})
 document.body.appendChild(display.getContainer())
 
 let game = new Game(display, [
@@ -23,6 +22,7 @@ let game = new Game(display, [
         "+-----------------------------------+"
     ], [
         ["Play!", () => {
+            player.health = player.props.maxhealth
             game.push(new LevelScreen(player, new Level(game, 200, 200, 40, Digger)))
         }],
         ["Help", () => {
