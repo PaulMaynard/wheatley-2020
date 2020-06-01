@@ -8,6 +8,8 @@ import FOV from './lib/ROT/fov/fov.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 import Scheduler from './lib/ROT/scheduler/scheduler.js'
 import Speed from './lib/ROT/scheduler/speed.js'
+import RecursiveShadowcasting from './lib/ROT/fov/recursive-shadowcasting.js'
+import { Game } from './game.js'
 
 enum Visibility {
     UNSEEN,
@@ -16,12 +18,14 @@ enum Visibility {
 }
 
 export class Level {
-    public tiles: Tile[][]
-    public seen: Visibility[][]
-    public monsters: Monster[]
-    public start: Point
-    public scheduler: Scheduler
-    constructor(readonly width: number, readonly height: number, nmonsters: number,
+    tiles: Tile[][]
+    seen: Visibility[][]
+    monsters: Monster[]
+    start: Point
+    fov: FOV
+    scheduler: Scheduler
+    constructor(public game: Game,
+                readonly width: number, readonly height: number, nmonsters: number,
                 generator: { new(w: number, h: number): Dungeon }) {
         this.tiles = new Array(height)
         this.seen = new Array(height)
@@ -31,6 +35,10 @@ export class Level {
         }
 
         this.scheduler = new Speed()
+        this.fov = new RecursiveShadowcasting((x, y) => {
+            let p = new Point(x, y)
+            return this.in(p) && !this.tile(p).props.opaque
+        })
 
         let gen = new generator(width, height)
         gen.create((x, y, type) => {
@@ -72,9 +80,12 @@ export class Level {
             }
         }
     }
+    in(p: Point): boolean {
+        return 0 <= p.x && p.x < this.width && 0 <= p.y && p.y < this.height
+    }
     tile(p: Point): Tile {
         for (let m of this.monsters) {
-            if (m.pos.equals(p)) {
+            if (m.pos.equals(p) && m.health > 0) {
                 return m
             }
         }
@@ -84,29 +95,16 @@ export class Level {
 
 export class LevelScreen extends Screen {
     center: Point
-    private fov: FOV
     constructor(public player: Monster, public level: Level) {
         super()
         this.center = level.start
-        this.fov = new PreciseShadowcasting((x, y) => {
-            if (y in this.level.tiles && x in this.level.tiles[y]) {
-                return !this.level.tiles[y][x].props.opaque
-            } else {
-                return false
-            }
-        })
     }
     enter() {
         this.level.monsters.push(this.player)
         this.player.pos = this.level.start
     }
     render(display: Display) {
-        let visible = new Array(this.level.height)
-        for (let y = 0; y < this.level.height; y++) {
-            visible[y] = new Array(this.level.width)
-        }
-
-        this.fov.compute(this.player.pos.x, this.player.pos.y, 11, (x, y, v) => {
+        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
             this.level.seen[y][x] = Visibility.VISIBLE
         })
 
@@ -114,24 +112,29 @@ export class LevelScreen extends Screen {
             display.getOptions().width,
             display.getOptions().height
         )
+        let p = new Point(0, 0)
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
-        for (let y = 0; y < dim.y; y++) {
+        for (let y = 0; y < dim.y-5; y++) {
             for (let x = 0; x < dim.x; x++) {
-                let p = new Point(x, y)
+                p = new Point(x, y)
                 let po = p.plus(offset)
-                if (this.level.seen[po.y][po.x] == Visibility.VISIBLE) {
-                    this.level.tile(po).draw(display, p)
-                    this.level.seen[po.y][po.x] = Visibility.SEEN
-                } else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
-                    this.level.tile(po).draw(display, p, 'gray')
+                if (this.level.in(po)) {
+                    if (this.level.seen[po.y][po.x] == Visibility.VISIBLE) {
+                        this.level.tile(po).draw(display, p)
+                        this.level.seen[po.y][po.x] = Visibility.SEEN
+                    } else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
+                        this.level.tile(po).draw(display, p, 'gray')
+                    }
                 }
             }
         }
-        this.level.monsters.forEach(mon => {
-            if (this.level.seen[mon.pos.y][mon.pos.x]) {
-                mon.draw(display, mon.pos.minus(offset))
-            }
-        })
+        // this.level.monsters.forEach(mon => {
+        //     if (this.level.seen[mon.pos.y][mon.pos.x]) {
+        //         mon.draw(display, mon.pos.minus(offset))
+        //     }
+        // })
+        display.drawText(0, 0, grade(this.player.health, this.player.props.maxhealth) + ' (' +
+            this.player.health + '/' + this.player.props.maxhealth + ')')
     }
     handle(key: number) {
         let [x, y] = this.player.pos
@@ -178,8 +181,46 @@ export class LevelScreen extends Screen {
             break
             case KEYS.VK_X:
                 this.game.push(new LookScreen(this, this.player.pos))
+            break
+            default:
+                return
         }
         this.player.move(this.level, new Point(x, y))
+        // if (this.player.pos.minus(this.center).chebyshev() > 5) {
+        this.center = this.player.pos
+        // }
+        for (let m of this.level.monsters) {
+            if (m.health > 0) {
+                m.act(this.level)
+            }
+        }
+    }
+}
+
+function grade(n: number, m: number) {
+    let gpa = n/m * 4
+    if (gpa <= 0) {
+        return 'F'
+    } else if (gpa <= 1) {
+        return 'D'
+    } else if (gpa <= 1.3) {
+        return 'D+'
+    } else if (gpa <= 1.7) {
+        return 'C-'
+    } else if (gpa <= 2) {
+        return 'C'
+    } else if (gpa <= 2.3) {
+        return 'C+'
+    } else if (gpa <= 2.7) {
+        return 'B-'
+    } else if (gpa <= 3) {
+        return 'B'
+    } else if (gpa <= 3.3) {
+        return 'B+'
+    } else if (gpa <= 3.7) {
+        return 'A-'
+    } else {
+        return 'A'
     }
 }
 
@@ -246,6 +287,9 @@ class LookScreen extends Screen {
             break
             case KEYS.VK_ESCAPE:
                 this.game.pop()
+            break
+            default:
+                return
         }
         this.pos = new Point(x, y)
     }
