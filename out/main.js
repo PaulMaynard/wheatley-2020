@@ -19,7 +19,7 @@ let game = new Game(display, [
         "+-------------------------------+"
     ], [
         ["Play!", () => {
-                game.push(new LevelScreen(player, new Level(100, 100, Digger)));
+                game.push(new LevelScreen(player, new Level(100, 100, 20, Digger)));
             }]
     ])
 ]);

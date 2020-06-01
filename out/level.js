@@ -1,10 +1,17 @@
 import { RNG, KEYS } from './lib/ROT/index.js';
-import { tiles } from './tile.js';
+import Tile, { tiles } from './tile.js';
 import Screen from './screen.js';
+import { genMonster } from './monster.js';
 import Point from './point.js';
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js';
+var Visibility;
+(function (Visibility) {
+    Visibility[Visibility["UNSEEN"] = 0] = "UNSEEN";
+    Visibility[Visibility["SEEN"] = 1] = "SEEN";
+    Visibility[Visibility["VISIBLE"] = 2] = "VISIBLE";
+})(Visibility || (Visibility = {}));
 export class Level {
-    constructor(width, height, generator) {
+    constructor(width, height, nmonsters, generator) {
         this.width = width;
         this.height = height;
         this.tiles = new Array(height);
@@ -13,7 +20,6 @@ export class Level {
             this.tiles[y] = new Array(width);
             this.seen[y] = new Array(width);
         }
-        this.monsters = [];
         let gen = new generator(width, height);
         gen.create((x, y, type) => {
             if (type == 1) {
@@ -28,6 +34,19 @@ export class Level {
         }
         let room = RNG.getItem(gen.getRooms());
         this.start = new Point(...room.getCenter());
+        this.monsters = new Array();
+        for (let i = 0; i < nmonsters; i++) {
+            let mon = genMonster();
+            while (true) {
+                let x = RNG.getUniformInt(0, this.width - 1);
+                let y = RNG.getUniformInt(0, this.height - 1);
+                if (!this.tiles[y][x].props.impassable) {
+                    mon.pos = new Point(x, y);
+                    this.monsters.push(mon);
+                    break;
+                }
+            }
+        }
     }
     iter(lb, ub, cb) {
         for (let y = 0; y < this.height; y++) {
@@ -39,6 +58,14 @@ export class Level {
                 }
             }
         }
+    }
+    tile(p) {
+        for (let m of this.monsters) {
+            if (m.pos.equals(p)) {
+                return m.tile;
+            }
+        }
+        return this.tiles[p.y][p.x];
     }
 }
 export class LevelScreen extends Screen {
@@ -66,20 +93,24 @@ export class LevelScreen extends Screen {
             visible[y] = new Array(this.level.width);
         }
         this.fov.compute(this.player.pos.x, this.player.pos.y, 11, (x, y, v) => {
-            visible[y][x] = v;
-            this.level.seen[y][x] = true;
+            this.level.seen[y][x] = Visibility.VISIBLE;
         });
         let dim = new Point(display.getOptions().width, display.getOptions().height);
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1));
         this.level.iter(offset, offset.plus(dim), (tile, p) => {
-            if (visible[p.y][p.x]) {
+            if (this.level.seen[p.y][p.x] == Visibility.VISIBLE) {
                 tile.draw(display, p.minus(offset));
+                this.level.seen[p.y][p.x] = Visibility.SEEN;
             }
-            else if (this.level.seen[p.y][p.x]) {
+            else if (this.level.seen[p.y][p.x] == Visibility.SEEN) {
                 tile.draw(display, p.minus(offset), 'gray');
             }
         });
-        this.level.monsters.forEach(mon => mon.tile.draw(display, mon.pos.minus(offset)));
+        this.level.monsters.forEach(mon => {
+            if (this.level.seen[mon.pos.y][mon.pos.x]) {
+                mon.tile.draw(display, mon.pos.minus(offset));
+            }
+        });
     }
     handle(key) {
         let [x, y] = this.player.pos;
@@ -124,6 +155,8 @@ export class LevelScreen extends Screen {
                 x++;
                 y++;
                 break;
+            case KEYS.VK_X:
+                this.game.push(new LookScreen(this, this.player.pos));
         }
         let tile = this.level.tiles[y][x];
         if (!tile.props.impassable) {
@@ -133,6 +166,70 @@ export class LevelScreen extends Screen {
         if (tile.props.open) {
             this.level.tiles[y][x] = tile.props.open;
         }
+    }
+}
+class LookScreen extends Screen {
+    constructor(scr, pos) {
+        super();
+        this.scr = scr;
+        this.pos = pos;
+    }
+    render(display) {
+        this.scr.render(display);
+        let dim = new Point(display.getOptions().width, display.getOptions().height);
+        let offset = this.scr.center.minus(new Point(dim.x >> 1, dim.y >> 1));
+        new Tile('X', 'lightblue').draw(display, this.pos.minus(offset));
+        if (this.scr.level.seen[this.pos.y][this.pos.x] == Visibility.SEEN) {
+            display.drawText(0, 0, "You see " + this.scr.level.tile(this.pos).props.desc);
+        }
+    }
+    handle(key) {
+        let [x, y] = this.pos;
+        switch (key) {
+            case KEYS.VK_UP:
+            case KEYS.VK_K:
+            case KEYS.VK_NUMPAD8:
+                y--;
+                break;
+            case KEYS.VK_DOWN:
+            case KEYS.VK_J:
+            case KEYS.VK_NUMPAD2:
+                y++;
+                break;
+            case KEYS.VK_LEFT:
+            case KEYS.VK_H:
+            case KEYS.VK_NUMPAD4:
+                x--;
+                break;
+            case KEYS.VK_RIGHT:
+            case KEYS.VK_L:
+            case KEYS.VK_NUMPAD6:
+                x++;
+                break;
+            case KEYS.VK_Y:
+            case KEYS.VK_NUMPAD7:
+                x--;
+                y--;
+                break;
+            case KEYS.VK_U:
+            case KEYS.VK_NUMPAD9:
+                x++;
+                y--;
+                break;
+            case KEYS.VK_B:
+            case KEYS.VK_NUMPAD1:
+                x--;
+                y++;
+                break;
+            case KEYS.VK_N:
+            case KEYS.VK_NUMPAD3:
+                x++;
+                y++;
+                break;
+            case KEYS.VK_ESCAPE:
+                this.game.pop();
+        }
+        this.pos = new Point(x, y);
     }
 }
 //# sourceMappingURL=level.js.map

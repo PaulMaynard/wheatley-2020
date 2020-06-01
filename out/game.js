@@ -12,6 +12,7 @@ export class Game {
     }
     push(screen) {
         this.screens.push(screen);
+        screen.game = this;
         screen.enter();
         this.render();
     }

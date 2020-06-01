@@ -13,5 +13,8 @@ export default class Point {
     minus(p) {
         return new Point(this.x - p.x, this.y - p.y);
     }
+    equals(p) {
+        return this.x == p.x && this.y == p.y;
+    }
 }
 //# sourceMappingURL=point.js.map

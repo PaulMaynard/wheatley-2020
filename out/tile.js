@@ -1,5 +1,5 @@
 export default class Tile {
-    constructor(ch, fg, bg = {}, props = {}) {
+    constructor(ch, fg, bg = { desc: '' }, props = { desc: '' }) {
         this.ch = ch;
         this.fg = fg;
         if (typeof bg != 'string') {
@@ -15,10 +15,19 @@ export default class Tile {
 }
 export var tiles;
 (function (tiles) {
-    tiles.wall = new Tile('#', 'white', { impassable: true, opaque: true });
-    tiles.floor = new Tile('.', 'white');
-    tiles.opendoor = new Tile(',', 'brown');
+    tiles.wall = new Tile('#', 'white', {
+        desc: 'a wall',
+        impassable: true,
+        opaque: true
+    });
+    tiles.floor = new Tile('.', 'white', {
+        desc: 'a floor'
+    });
+    tiles.opendoor = new Tile('\'', 'brown', {
+        desc: 'an opened door'
+    });
     tiles.door = new Tile('+', 'brown', {
+        desc: 'a door',
         impassable: true,
         opaque: true,
         open: tiles.opendoor
