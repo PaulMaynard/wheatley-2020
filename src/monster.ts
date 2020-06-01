@@ -161,7 +161,7 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
             [Damage.LECTURE]: 2
         }
     }]],
-    [.1, ['math professor', 'P', 'lightred', {
+    [.1, ['math professor', 'P', 'red', {
         desc: 'a math professor',
         sight: 9,
         maxhealth: 10,
@@ -204,7 +204,7 @@ export let player = new Monster(
         maxhealth: 20,
         weapons: [
             [die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL],
-            [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at'], Damage.CRINGE]
+            [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
         ]
     }
 )

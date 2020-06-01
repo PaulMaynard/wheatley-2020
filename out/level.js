@@ -92,8 +92,10 @@ export class LevelScreen extends Screen {
             for (let x = 0; x < dim.x; x++) {
                 let p = new Point(x, y);
                 let po = p.plus(offset);
-                if (typeof this.level.seen[po.y][po.x] == 'number') {
-                    this.level.seen[po.y][po.x] = this.level.tile(po);
+                if (this.level.in(po)) {
+                    if (typeof this.level.seen[po.y][po.x] == 'number') {
+                        this.level.seen[po.y][po.x] = this.level.tile(po);
+                    }
                 }
             }
         }
