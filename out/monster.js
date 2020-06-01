@@ -17,6 +17,13 @@ var Damage;
     Damage["CRINGE"] = "cringe";
     Damage["COVID"] = "coronavirus";
 })(Damage || (Damage = {}));
+let deaths = {
+    [Damage.LECTURE]: ['are bored to death', 'is bored to death'],
+    [Damage.MATH]: ['are left as an exercise for the reader', 'is left as an exercise for the reader'],
+    [Damage.RECURSION]: ['are sent into an infinite loop', 'is sent into an infinite loop'],
+    [Damage.CRINGE]: ['have been owned', 'has been owned'],
+    [Damage.COVID]: ['dies of Coronavirus', 'dies of Coronavirus'],
+};
 export default class Monster extends Tile {
     constructor(name, ch, fg, bg, props) {
         if (typeof fg != 'string') {
@@ -97,7 +104,22 @@ export default class Monster extends Tile {
                 ' for ' + dam + ' damage');
         }
         if (mon.health <= 0) {
-            msgs.push('The ' + mon.name + ' dies!');
+            if (weapon[2] in deaths) {
+                if (mon.props.player) {
+                    msgs.push('You ' + deaths[weapon[2]][0] + '!');
+                }
+                else {
+                    msgs.push('The ' + mon.name + ' ' + deaths[weapon[2]][1] + '!');
+                }
+            }
+            else {
+                if (mon.props.player) {
+                    msgs.push('You die!');
+                }
+                else {
+                    msgs.push('The ' + mon.name + ' dies!');
+                }
+            }
         }
         return msgs;
     }
@@ -146,7 +168,7 @@ let mons = [
                     [Damage.LECTURE]: 2
                 }
             }]],
-    [100, ['student', '@', 'green', {
+    [.2, ['student', '@', 'green', {
                 desc: 'a lost student',
                 sight: 10,
                 maxhealth: 6,
