@@ -3,7 +3,7 @@ import Point from "./point"
 
 export interface TileProps {
     impassable?: boolean
-    transparent?: boolean
+    opaque?: boolean
     open?: Tile
     close?: Tile
     walk?: Tile
@@ -27,18 +27,18 @@ export default class Tile {
         this.bg = bg
         this.props = props
     }
-    draw(display: Display, p: Point) {
-        display.draw(p.x, p.y, this.ch, this.fg, this.bg)
+    draw(display: Display, p: Point, ch = this.ch, fg = this.fg, bg = this.bg) {
+        display.draw(p.x, p.y, ch, fg, bg)
     }
 }
 
 export namespace tiles {
-    export let wall = new Tile('#', 'white', {impassable: true, transparent: false})
+    export let wall = new Tile('#', 'white', {impassable: true, opaque: true})
     export let floor = new Tile('.', 'white')
     export let opendoor = new Tile(',', 'brown')
     export let door = new Tile('+', 'brown', {
         impassable: true,
-        transparent: false,
+        opaque: true,
         open: opendoor
     })
     opendoor.props.close = door

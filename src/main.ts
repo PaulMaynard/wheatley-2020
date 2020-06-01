@@ -5,6 +5,8 @@ import { LevelScreen, Level } from "./level.js"
 import Digger from "./lib/ROT/map/digger.js"
 import { player } from "./monster.js"
 
+// Display.Rect.cache = true
+
 let o = {
 	width: 80,
     height: 45,

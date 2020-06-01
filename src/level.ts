@@ -4,6 +4,8 @@ import Tile, { tiles } from './tile.js'
 import Screen from './screen.js'
 import Monster from './monster.js'
 import Point from './point.js'
+import FOV from './lib/ROT/fov/fov.js'
+import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 
 export class Level {
     public tiles: Tile[][]
@@ -13,7 +15,7 @@ export class Level {
                 generator: { new(w: number, h: number): Dungeon }) {
         this.tiles = new Array(height)
         for (let y = 0; y < height; y++) {
-            this.tiles[y] = new Array(height)
+            this.tiles[y] = new Array(width)
         }
         this.monsters = []
 
@@ -31,12 +33,12 @@ export class Level {
         let room = RNG.getItem(gen.getRooms())
         this.start = new Point(...room.getCenter() as [number, number])
     }
-    *iter(lb?: Point, ub?: Point): Generator<[Tile, Point]> {
+    iter(lb: Point, ub: Point, cb: (t: Tile, p: Point) => void) {
         for (let y = 0; y < this.height; y++) {
             if ((lb && lb.y < y) || (ub && y < ub.y)) {
                 for (let x = 0; x < this.width; x++) {
                     if ((lb && lb.x < x) || (ub && x < ub.x)) {
-                        yield [this.tiles[y][x], new Point(x, y)]
+                        cb(this.tiles[y][x], new Point(x, y))
                     }
                 }
             }
@@ -46,23 +48,43 @@ export class Level {
 
 export class LevelScreen extends Screen {
     center : Point
+    private fov: FOV
     constructor(public player: Monster, public level: Level) {
         super()
         this.center = level.start
+        this.fov = new PreciseShadowcasting((x, y) => {
+            if (y in this.level.tiles && x in this.level.tiles[y]) {
+                return !this.level.tiles[y][x].props.opaque
+            } else {
+                return false
+            }
+        })
     }
     enter() {
         this.level.monsters.push(this.player)
         this.player.pos = this.level.start
     }
     render(display: Display) {
+        let visible = new Array(this.level.height)
+        for (let y = 0; y < this.level.height; y++) {
+            visible[y] = new Array(this.level.width)
+        }
+
+        this.fov.compute(this.player.pos.x, this.player.pos.y, 11, (x, y, v) => {
+            visible[y][x] = v
+        })
+
         let dim = new Point(
             display.getOptions().width,
             display.getOptions().height
         )
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
-        for (let [tile, p] of this.level.iter(offset, offset.plus(dim))) {
-            tile.draw(display, p.minus(offset))
-        }
+        this.level.iter(offset, offset.plus(dim), (tile, p) => {
+            if (visible[p.y][p.x]) {
+                // console.log(visible[p.y][p.x])
+                tile.draw(display, p.minus(offset))
+            }
+        })
         this.level.monsters.forEach(mon =>
             mon.tile.draw(display, mon.pos.minus(offset))
         )
