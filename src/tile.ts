@@ -27,8 +27,8 @@ export default class Tile {
         this.bg = bg
         this.props = props
     }
-    draw(display: Display, p: Point, ch = this.ch, fg = this.fg, bg = this.bg) {
-        display.draw(p.x, p.y, ch, fg, bg)
+    draw(display: Display, p: Point, fg = this.fg, bg = this.bg) {
+        display.draw(p.x, p.y, this.ch, fg, bg)
     }
 }
 

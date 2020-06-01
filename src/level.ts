@@ -9,13 +9,16 @@ import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 
 export class Level {
     public tiles: Tile[][]
+    public seen: boolean[][]
     public monsters: Monster[]
     public start: Point
     constructor(readonly width: number, readonly height: number,
                 generator: { new(w: number, h: number): Dungeon }) {
         this.tiles = new Array(height)
+        this.seen = new Array(height)
         for (let y = 0; y < height; y++) {
             this.tiles[y] = new Array(width)
+            this.seen[y] = new Array(width)
         }
         this.monsters = []
 
@@ -72,6 +75,7 @@ export class LevelScreen extends Screen {
 
         this.fov.compute(this.player.pos.x, this.player.pos.y, 11, (x, y, v) => {
             visible[y][x] = v
+            this.level.seen[y][x] = true
         })
 
         let dim = new Point(
@@ -81,8 +85,9 @@ export class LevelScreen extends Screen {
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1))
         this.level.iter(offset, offset.plus(dim), (tile, p) => {
             if (visible[p.y][p.x]) {
-                // console.log(visible[p.y][p.x])
                 tile.draw(display, p.minus(offset))
+            } else if (this.level.seen[p.y][p.x]) {
+                tile.draw(display, p.minus(offset), 'gray')
             }
         })
         this.level.monsters.forEach(mon =>
