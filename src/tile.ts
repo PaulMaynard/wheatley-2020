@@ -1,4 +1,5 @@
 import { Display } from "./lib/ROT/index"
+import Point from "./point"
 
 export interface TileProps {
     impassable?: boolean
@@ -26,8 +27,8 @@ export default class Tile {
         this.bg = bg
         this.props = props
     }
-    draw(display: Display, x: number, y: number) {
-        display.draw(x, y, this.ch, this.fg, this.bg)
+    draw(display: Display, p: Point) {
+        display.draw(p.x, p.y, this.ch, this.fg, this.bg)
     }
 }
 
@@ -36,7 +37,7 @@ export namespace tiles {
     export let floor = new Tile('.', 'white')
     export let opendoor = new Tile(',', 'brown')
     export let door = new Tile('+', 'brown', {
-        impassable: false,
+        impassable: true,
         transparent: false,
         open: opendoor
     })

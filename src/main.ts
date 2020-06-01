@@ -8,7 +8,7 @@ import { player } from "./monster.js"
 let o = {
 	width: 80,
     height: 45,
-    fontSize: 15
+    fontSize: 18
 }
 let display = new Display(o)
 document.body.appendChild(display.getContainer())
@@ -20,7 +20,7 @@ let game = new Game(display, [
         "+-------------------------------+"
     ], [
         ["Play!", () => {
-            game.push(new LevelScreen(player, new Level(80, 45, Digger)))
+            game.push(new LevelScreen(player, new Level(100, 100, Digger)))
         }]
     ])
 ])

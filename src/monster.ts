@@ -1,12 +1,12 @@
 import Tile from './tile.js'
+import Point from './point.js'
 
 interface PlayerProps {
     inactive?: boolean
 }
 
 export default class Monster {
-    x: number
-    y: number
+    pos: Point
     constructor(
         public name: string,
         public tile: Tile,
