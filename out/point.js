@@ -16,5 +16,11 @@ export default class Point {
     equals(p) {
         return this.x == p.x && this.y == p.y;
     }
+    manhatan() {
+        return Math.abs(this.x) + Math.abs(this.y);
+    }
+    chebyshev() {
+        return Math.max(Math.abs(this.x), Math.abs(this.y));
+    }
 }
 //# sourceMappingURL=point.js.map

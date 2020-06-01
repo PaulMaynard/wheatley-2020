@@ -14,12 +14,12 @@ let display = new Display(o);
 document.body.appendChild(display.getContainer());
 let game = new Game(display, [
     new MenuScreen([
-        "+-------------------------------+",
-        "|Welcome to %c{red}Hell%c{} Simulator 2020!|",
-        "+-------------------------------+"
+        "+-----------------------------------+",
+        "|Welcome to %c{red}Wheatley%c{} Simulator 2020!|",
+        "+-----------------------------------+"
     ], [
         ["Play!", () => {
-                game.push(new LevelScreen(player, new Level(100, 100, 20, Digger)));
+                game.push(new LevelScreen(player, new Level(game, 100, 100, 20, Digger)));
             }]
     ])
 ]);

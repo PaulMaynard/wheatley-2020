@@ -4,7 +4,7 @@ export default class Tile {
         this.fg = fg;
         if (typeof bg != 'string') {
             props = bg;
-            bg = 'black';
+            bg = '';
         }
         this.bg = bg;
         this.props = props;

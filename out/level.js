@@ -3,7 +3,8 @@ import Tile, { tiles } from './tile.js';
 import Screen from './screen.js';
 import { genMonster } from './monster.js';
 import Point from './point.js';
-import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js';
+import Speed from './lib/ROT/scheduler/speed.js';
+import RecursiveShadowcasting from './lib/ROT/fov/recursive-shadowcasting.js';
 var Visibility;
 (function (Visibility) {
     Visibility[Visibility["UNSEEN"] = 0] = "UNSEEN";
@@ -11,7 +12,8 @@ var Visibility;
     Visibility[Visibility["VISIBLE"] = 2] = "VISIBLE";
 })(Visibility || (Visibility = {}));
 export class Level {
-    constructor(width, height, nmonsters, generator) {
+    constructor(game, width, height, nmonsters, generator) {
+        this.game = game;
         this.width = width;
         this.height = height;
         this.tiles = new Array(height);
@@ -20,6 +22,11 @@ export class Level {
             this.tiles[y] = new Array(width);
             this.seen[y] = new Array(width);
         }
+        this.scheduler = new Speed();
+        this.fov = new RecursiveShadowcasting((x, y) => {
+            let p = new Point(x, y);
+            return this.in(p) && !this.tile(p).props.opaque;
+        });
         let gen = new generator(width, height);
         gen.create((x, y, type) => {
             if (type == 1) {
@@ -43,6 +50,7 @@ export class Level {
                 if (!this.tiles[y][x].props.impassable) {
                     mon.pos = new Point(x, y);
                     this.monsters.push(mon);
+                    this.scheduler.add(mon, true);
                     break;
                 }
             }
@@ -59,10 +67,13 @@ export class Level {
             }
         }
     }
+    in(p) {
+        return 0 <= p.x && p.x < this.width && 0 <= p.y && p.y < this.height;
+    }
     tile(p) {
         for (let m of this.monsters) {
-            if (m.pos.equals(p)) {
-                return m.tile;
+            if (m.pos.equals(p) && m.health > 0) {
+                return m;
             }
         }
         return this.tiles[p.y][p.x];
@@ -74,43 +85,40 @@ export class LevelScreen extends Screen {
         this.player = player;
         this.level = level;
         this.center = level.start;
-        this.fov = new PreciseShadowcasting((x, y) => {
-            if (y in this.level.tiles && x in this.level.tiles[y]) {
-                return !this.level.tiles[y][x].props.opaque;
-            }
-            else {
-                return false;
-            }
-        });
     }
     enter() {
         this.level.monsters.push(this.player);
         this.player.pos = this.level.start;
     }
     render(display) {
-        let visible = new Array(this.level.height);
-        for (let y = 0; y < this.level.height; y++) {
-            visible[y] = new Array(this.level.width);
-        }
-        this.fov.compute(this.player.pos.x, this.player.pos.y, 11, (x, y, v) => {
+        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
             this.level.seen[y][x] = Visibility.VISIBLE;
         });
         let dim = new Point(display.getOptions().width, display.getOptions().height);
+        let p = new Point(0, 0);
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1));
-        this.level.iter(offset, offset.plus(dim), (tile, p) => {
-            if (this.level.seen[p.y][p.x] == Visibility.VISIBLE) {
-                tile.draw(display, p.minus(offset));
-                this.level.seen[p.y][p.x] = Visibility.SEEN;
+        for (let y = 0; y < dim.y - 5; y++) {
+            for (let x = 0; x < dim.x; x++) {
+                p = new Point(x, y);
+                let po = p.plus(offset);
+                if (this.level.in(po)) {
+                    if (this.level.seen[po.y][po.x] == Visibility.VISIBLE) {
+                        this.level.tile(po).draw(display, p);
+                        this.level.seen[po.y][po.x] = Visibility.SEEN;
+                    }
+                    else if (this.level.seen[po.y][po.x] == Visibility.SEEN) {
+                        this.level.tile(po).draw(display, p, 'gray');
+                    }
+                }
             }
-            else if (this.level.seen[p.y][p.x] == Visibility.SEEN) {
-                tile.draw(display, p.minus(offset), 'gray');
-            }
-        });
-        this.level.monsters.forEach(mon => {
-            if (this.level.seen[mon.pos.y][mon.pos.x]) {
-                mon.tile.draw(display, mon.pos.minus(offset));
-            }
-        });
+        }
+        // this.level.monsters.forEach(mon => {
+        //     if (this.level.seen[mon.pos.y][mon.pos.x]) {
+        //         mon.draw(display, mon.pos.minus(offset))
+        //     }
+        // })
+        display.drawText(0, 0, grade(this.player.health, this.player.props.maxhealth) + ' (' +
+            this.player.health + '/' + this.player.props.maxhealth + ')');
     }
     handle(key) {
         let [x, y] = this.player.pos;
@@ -157,15 +165,55 @@ export class LevelScreen extends Screen {
                 break;
             case KEYS.VK_X:
                 this.game.push(new LookScreen(this, this.player.pos));
+                break;
+            default:
+                return;
         }
-        let tile = this.level.tiles[y][x];
-        if (!tile.props.impassable) {
-            this.player.pos = new Point(x, y);
-            this.center = this.player.pos;
+        this.player.move(this.level, new Point(x, y));
+        // if (this.player.pos.minus(this.center).chebyshev() > 5) {
+        this.center = this.player.pos;
+        // }
+        for (let m of this.level.monsters) {
+            if (m.health > 0) {
+                m.act(this.level);
+            }
         }
-        if (tile.props.open) {
-            this.level.tiles[y][x] = tile.props.open;
-        }
+    }
+}
+function grade(n, m) {
+    let gpa = n / m * 4;
+    if (gpa <= 0) {
+        return 'F';
+    }
+    else if (gpa <= 1) {
+        return 'D';
+    }
+    else if (gpa <= 1.3) {
+        return 'D+';
+    }
+    else if (gpa <= 1.7) {
+        return 'C-';
+    }
+    else if (gpa <= 2) {
+        return 'C';
+    }
+    else if (gpa <= 2.3) {
+        return 'C+';
+    }
+    else if (gpa <= 2.7) {
+        return 'B-';
+    }
+    else if (gpa <= 3) {
+        return 'B';
+    }
+    else if (gpa <= 3.3) {
+        return 'B+';
+    }
+    else if (gpa <= 3.7) {
+        return 'A-';
+    }
+    else {
+        return 'A';
     }
 }
 class LookScreen extends Screen {
@@ -178,9 +226,10 @@ class LookScreen extends Screen {
         this.scr.render(display);
         let dim = new Point(display.getOptions().width, display.getOptions().height);
         let offset = this.scr.center.minus(new Point(dim.x >> 1, dim.y >> 1));
-        new Tile('X', 'lightblue').draw(display, this.pos.minus(offset));
+        let pos = this.pos.minus(offset);
+        new Tile('X', 'lightblue').draw(display, pos);
         if (this.scr.level.seen[this.pos.y][this.pos.x] == Visibility.SEEN) {
-            display.drawText(0, 0, "You see " + this.scr.level.tile(this.pos).props.desc);
+            display.drawText(pos.x + 2, pos.y, "You see " + this.scr.level.tile(this.pos).props.desc);
         }
     }
     handle(key) {
@@ -228,6 +277,9 @@ class LookScreen extends Screen {
                 break;
             case KEYS.VK_ESCAPE:
                 this.game.pop();
+                break;
+            default:
+                return;
         }
         this.pos = new Point(x, y);
     }
