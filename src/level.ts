@@ -10,6 +10,7 @@ import Scheduler from './lib/ROT/scheduler/scheduler.js'
 import Speed from './lib/ROT/scheduler/speed.js'
 import RecursiveShadowcasting from './lib/ROT/fov/recursive-shadowcasting.js'
 import { Game } from './game.js'
+import HelpScreen from './help.js'
 
 enum Visibility {
     UNSEEN,
@@ -182,6 +183,8 @@ export class LevelScreen extends Screen {
             case KEYS.VK_X:
                 this.game.push(new LookScreen(this, this.player.pos))
             break
+            case KEYS.VK_SLASH:
+                this.game.push(new HelpScreen())
             default:
                 return
         }

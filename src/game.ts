@@ -27,9 +27,10 @@ export class Game {
     render() {
         this.display.clear()
         this.activeScreen.render(this.display)
-        let p = this.display.getOptions().height - 5
+        let p = this.display.getOptions().height-1
+        let colors = ['%c{#fff}', '%c{#ddd}', '%c{#bbb}', '%c{#999}', '%c{#777}']
         this.msgs.forEach((m, i) => {
-            this.display.drawText(0, p+i, m)
+            this.display.drawText(0, p-i, colors[i] + m + '%c{}')
         });
     }
     log(msg: string) {

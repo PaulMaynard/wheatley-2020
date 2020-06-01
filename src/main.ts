@@ -1,8 +1,9 @@
 import { Display } from "./lib/ROT/index.js"
+import Digger from "./lib/ROT/map/digger.js"
 import { MenuScreen } from "./screen.js"
+import HelpScreen from "./help.js"
 import { Game } from "./game.js"
 import { LevelScreen, Level } from "./level.js"
-import Digger from "./lib/ROT/map/digger.js"
 import { player } from "./monster.js"
 
 // Display.Rect.cache = true
@@ -23,6 +24,9 @@ let game = new Game(display, [
     ], [
         ["Play!", () => {
             game.push(new LevelScreen(player, new Level(game, 100, 100, 20, Digger)))
+        }],
+        ["Help", () => {
+            game.push(new HelpScreen())
         }]
     ])
 ])

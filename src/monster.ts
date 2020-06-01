@@ -12,10 +12,13 @@ enum Damage {
     POISON = 'poison',
     WEED = 'weed',
     GROSS = 'gross',
-    SPOOK = 'spooky',
+    SPOOKY = 'spooky',
     LECTURE = 'lecture',
     MATH = 'math',
-    RECURSION = 'recursion'
+    RECURSION = 'recursion',
+    LITERATURE = 'literature',
+    BIGOTRY = 'bigotry',
+    CRINGE = 'cringe'
 }
 
 interface MonsterProps extends TileProps {
@@ -195,6 +198,10 @@ export let player = new Monster(
         desc: 'yourself',
         sight: 10,
         maxhealth: 20,
-        weapons: [[die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL]]
+        weapons: [
+            [die('1d6'), ['hit', 'whack', 'whallop', 'slap', 'punch'], Damage.PHYSICAL]
+            [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at'], Damage.CRINGE]
+        ]
+
     }
 )
