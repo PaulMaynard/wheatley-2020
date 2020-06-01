@@ -84,9 +84,10 @@ export class LevelScreen extends Screen {
     enter() {
         this.level.monsters.push(this.player);
         this.player.pos = this.level.start;
+        this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!");
     }
     render(display) {
-        let dim = new Point(display.getOptions().width, display.getOptions().height);
+        let dim = new Point(display.getOptions().width - 20, display.getOptions().height - 5);
         let offset = this.center.minus(new Point(dim.x >> 1, dim.y >> 1));
         for (let y = 0; y < dim.y - 5; y++) {
             for (let x = 0; x < dim.x; x++) {
@@ -103,7 +104,7 @@ export class LevelScreen extends Screen {
             this.level.seen[y][x] = 1 + v;
         });
         for (let y = 0; y < dim.y - 5; y++) {
-            for (let x = 0; x < dim.x; x++) {
+            for (let x = 0; x < dim.x - 20; x++) {
                 let p = new Point(x, y);
                 let po = p.plus(offset);
                 if (this.level.in(po)) {
@@ -114,7 +115,7 @@ export class LevelScreen extends Screen {
                     else if (vis > 0) {
                         let tile = this.level.tile(po);
                         let col = Color.fromString(tile.fg);
-                        col = Color.interpolate(col, Color.fromString('gray'), vis * .06);
+                        col = Color.interpolate(col, Color.fromString('gray'), vis * .05);
                         tile.draw(display, p, Color.toHex(col));
                     }
                 }
@@ -177,6 +178,9 @@ export class LevelScreen extends Screen {
             case KEYS.VK_SLASH:
                 this.game.push(new HelpScreen());
                 return;
+            case KEYS.VK_ESCAPE:
+                this.game.pop();
+                return;
             default:
                 return;
         }
@@ -236,7 +240,7 @@ class LookScreen extends Screen {
     render(display) {
         this.scr.render(display);
         let dim = new Point(display.getOptions().width, display.getOptions().height);
-        let offset = this.scr.center.minus(new Point(dim.x >> 1, dim.y >> 1));
+        let offset = this.scr.center.minus(new Point(dim.x - 20 >> 1, dim.y - 5 >> 1));
         let pos = this.pos.minus(offset);
         new Tile('X', 'lightblue').draw(display, pos);
         if (this.scr.level.seen[this.pos.y][this.pos.x] > 0) {

@@ -18,7 +18,8 @@ enum Damage {
     RECURSION = 'recursion',
     LITERATURE = 'literature',
     BIGOTRY = 'bigotry',
-    CRINGE = 'cringe'
+    CRINGE = 'cringe',
+    COVID = 'coronavirus'
 }
 
 interface MonsterProps extends TileProps {
@@ -170,11 +171,11 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
             [Damage.LECTURE]: 2
         }
     }]],
-    [.3, ['student', '@', 'green', {
+    [100, ['student', '@', 'green', {
         desc: 'a lost student',
         sight: 10,
         maxhealth: 6,
-        weapons: [[die('1d6'), ['blows smoke at'], Damage.WEED]],
+        weapons: [[die('1d6'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
         resistance: {
             [Damage.LECTURE]: -2,
             [Damage.WEED]: 2

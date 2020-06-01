@@ -7,7 +7,7 @@ import { LevelScreen, Level } from "./level.js";
 import { player } from "./monster.js";
 // Display.Rect.cache = true
 let o = {
-    width: 80,
+    width: 100,
     height: 45,
     fontSize: 18
 };
@@ -20,7 +20,7 @@ let game = new Game(display, [
         "+-----------------------------------+"
     ], [
         ["Play!", () => {
-                game.push(new LevelScreen(player, new Level(game, 100, 100, 20, Digger)));
+                game.push(new LevelScreen(player, new Level(game, 200, 200, 40, Digger)));
             }],
         ["Help", () => {
                 game.push(new HelpScreen());

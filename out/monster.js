@@ -15,6 +15,7 @@ var Damage;
     Damage["LITERATURE"] = "literature";
     Damage["BIGOTRY"] = "bigotry";
     Damage["CRINGE"] = "cringe";
+    Damage["COVID"] = "coronavirus";
 })(Damage || (Damage = {}));
 export default class Monster extends Tile {
     constructor(name, ch, fg, bg, props) {
@@ -145,11 +146,11 @@ let mons = [
                     [Damage.LECTURE]: 2
                 }
             }]],
-    [.3, ['student', '@', 'green', {
+    [100, ['student', '@', 'green', {
                 desc: 'a lost student',
                 sight: 10,
                 maxhealth: 6,
-                weapons: [[die('1d6'), ['blows smoke at'], Damage.WEED]],
+                weapons: [[die('1d6'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
                 resistance: {
                     [Damage.LECTURE]: -2,
                     [Damage.WEED]: 2
