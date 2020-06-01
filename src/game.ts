@@ -14,6 +14,7 @@ export class Game {
     }
     push(screen: Screen) {
         this.screens.push(screen)
+        screen.game = this
         screen.enter()
         this.render()
     }

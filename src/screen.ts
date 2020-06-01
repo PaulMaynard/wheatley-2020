@@ -1,4 +1,5 @@
 import { Display, KEYS } from "./lib/ROT/index.js";
+import { Game } from "./game.js";
 
 const _noop = () => {}
 
@@ -7,6 +8,7 @@ export default abstract class Screen {
     exit(): void {}
     render(display: Display): void {}
     handle(key: number): void {}
+    game: Game
 }
 
 export class MenuScreen extends Screen {
