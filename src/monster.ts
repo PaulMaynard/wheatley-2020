@@ -13,6 +13,7 @@ enum Damage {
     LECTURE = 'lecture',
     MATH = 'math',
     RECURSION = 'recursion',
+    CS = 'computer',
     LITERATURE = 'literature',
     RELIGION = 'religion',
     ANIME = 'anime',
@@ -21,14 +22,15 @@ enum Damage {
     LOGIC = 'logic'
 }
 let deaths = {
-    [Damage.LECTURE]: ['have failed', 'has failed'],
-    [Damage.MATH]: ['are left as an exercise for the reader', 'is left as an exercise for the reader'],
-    [Damage.RECURSION]: ['are sent into an infinite loop', 'is sent into an infinite loop'],
-    [Damage.RELIGION]: ['are condemned to hell', 'is condemned to hell'],
-    [Damage.ANIME]: ['are sent to the shadow realm!!', 'is sent to the shadow realm!!'],
-    [Damage.CRINGE]: ['loose subscriber', 'looses subscriber'],
-    [Damage.COVID]: ['die of Coronavirus', 'dies of Coronavirus'],
-    [Damage.LOGIC]: ['are destroyed by facts and logic', 'is destroyed by facts and logic'],
+    [Damage.LECTURE]: [' have failed', ' has failed'],
+    [Damage.MATH]: [' are left as an exercise for the reader', ' is left as an exercise for the reader'],
+    [Damage.RECURSION]: ['r stack has overflowed', "'s stack has overflowed"],
+    [Damage.CS]: [' have been garbage collected', 'has been garbage collected'],
+    [Damage.RELIGION]: [' are condemned to hell', ' is condemned to hell'],
+    [Damage.ANIME]: [' are sent to the shadow realm!!', ' is sent to the shadow realm!!'],
+    [Damage.CRINGE]: [' loose subscriber', ' looses subscriber'],
+    [Damage.COVID]: [' die of Coronavirus', ' dies of Coronavirus'],
+    [Damage.LOGIC]: [' are destroyed by facts and logic', ' is destroyed by facts and logic'],
 }
 
 interface MonsterProps extends TileProps {
@@ -46,6 +48,7 @@ export default class Monster extends Tile {
     pos: Point
     props: MonsterProps
     health: number
+    active: boolean
     effects: [((m: Monster, l?: Level) => void), string][]
     constructor(name: string, tile: Tile, props: MonsterProps)
     constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps)
@@ -67,6 +70,7 @@ export default class Monster extends Tile {
         if (this.props.impassable == null) {
             this.props.impassable = true
         }
+        this.active = false
         this.effects = []
     }
     getSpeed(): number {
@@ -150,9 +154,9 @@ export default class Monster extends Tile {
         if (mon.health <= 0) {
             if (weapon[2] in deaths) {
                 if (mon instanceof Player) {
-                    msgs.push('You ' + deaths[weapon[2]][0] + '!')
+                    msgs.push('You' + deaths[weapon[2]][0] + '!')
                 } else {
-                    msgs.push('The ' + mon.name + ' ' + deaths[weapon[2]][1] + '!')
+                    msgs.push('The ' + mon.name + deaths[weapon[2]][1] + '!')
                 }
             } else {
                 if (mon instanceof Player) {
@@ -165,15 +169,21 @@ export default class Monster extends Tile {
         return msgs
     }
 }
+type MonSpec = [number, string, string, string, MonsterProps]
 
-let mons: [number, [string, string, string, MonsterProps]][] = [
-    [.3, ['roach', 'r', 'brown', {
+export function mkMonster(m: MonSpec): Monster {
+    let [w, ...as] = m
+    return new Monster(...as)
+}
+
+export let monsters: {[n: string]: MonSpec} = {
+    roach: [.1, 'roach', 'r', 'brown', {
         desc: 'a monstrous roach',
         sight: 5,
         maxhealth: 5,
         weapons: [[die('1d6'), ['disgusts'], Damage.GROSS]],
-    }]],
-    [.1, ['bee', 'B', 'yellow', {
+    }],
+    bee: [.1, 'bee', 'B', 'yellow', {
         desc: 'a friendly bee',
         sight: 5,
         friendly: true,
@@ -182,8 +192,8 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
         resistance: {
             [Damage.WEED]: -2
         }
-    }]],
-    [.1, ['wasp', 'w', 'yellow', {
+    }],
+    wasp: [.1, 'wasp', 'w', 'yellow', {
         desc: 'an angry wasp',
         sight: 5,
         speed: 200,
@@ -192,8 +202,8 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
         resistance: {
             [Damage.WEED]: -2
         }
-    }]],
-    [.2, ['professor', 'P', 'lightblue', {
+    }],
+    prof: [.2, 'professor', 'P', 'lightblue', {
         desc: 'a wandering professor',
         sight: 9,
         maxhealth: 10,
@@ -201,8 +211,8 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
         resistance: {
             [Damage.LECTURE]: 2
         }
-    }]],
-    [.1, ['math professor', 'P', 'red', {
+    }],
+    mprof: [.1, 'math professor', 'P', 'red', {
         desc: 'a math professor',
         sight: 9,
         maxhealth: 10,
@@ -214,8 +224,8 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
             [Damage.LECTURE]: 2,
             [Damage.RECURSION]: 3
         }
-    }]],
-    [.1, ['preacher', 'P', 'yellow', {
+    }],
+    preacher: [.1, 'preacher', 'P', 'yellow', {
         desc: 'a street preacher',
         sight: 12,
         maxhealth: 10,
@@ -223,8 +233,8 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
         resistance: {
             [Damage.LOGIC]: 4
         }
-    }]],
-    [.2, ['student', '@', 'green', {
+    }],
+    student: [.2, 'student', '@', 'green', {
         desc: 'a lost student',
         friendly: true,
         sight: 10,
@@ -234,16 +244,20 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
             [Damage.LECTURE]: -2,
             [Damage.WEED]: 2
         }
-    }]]
-]
-let weight = mons.map(m => m[0]).reduce((a, b) => a + b, 0)
+    }]
+}
+let weight = 0
+for (let n in monsters) {
+    weight += monsters[n][0]
+}
 
 export function genMonster() {
     let pct = RNG.getUniform() * weight
-    for (let [w, m] of mons) {
-        pct -= w
+    for (let n in monsters) {
+        let s = monsters[n]
+        pct -= s[0]
         if (pct < 0) {
-            return new Monster(...m)
+            return mkMonster(s)
         }
     }
 }

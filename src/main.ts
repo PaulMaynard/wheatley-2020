@@ -42,7 +42,7 @@ let game = new Game(display, [
     ], [
         ["Play!", () => {
             player.health = player.props.maxhealth
-            game.push(new LevelScreen(player, new Level(game, 200, 200, 50,
+            game.push(new LevelScreen(player, new Level(game, 150, 150, 50,
                 (w, h) => new WheatleyGen(w, h, 7, 6)
             )))
         }],

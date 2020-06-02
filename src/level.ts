@@ -36,9 +36,14 @@ export class Level {
             return this.in(p) && !this.tile(p).props.opaque
         })
 
+        this.monsters = new Array()
+
         let gen = generator(width, height)
-        gen.create((x, y, t: Tile) => {
-                this.tiles[y][x] = t
+        gen.create((x, y, t, m?) => {
+            this.tiles[y][x] = t
+            if (m) {
+                this.addMonster(m, new Point(x, y), false)
+            }
         })
 
         while (true) {
@@ -50,23 +55,25 @@ export class Level {
             }
         }
 
-        this.monsters = new Array()
         for (let i = 0; i < nmonsters; i++) {
             let mon = genMonster()
             while (true) {
                 let x = RNG.getUniformInt(0, this.width - 1)
                 let y = RNG.getUniformInt(0, this.height - 1)
                 if (!this.tiles[y][x].props.impassable) {
-                    mon.pos = new Point(x, y)
-                    this.addMonster(mon)
+                    this.addMonster(mon, new Point(x, y))
                     break
                 }
             }
         }
     }
-    addMonster(mon: Monster) {
+    addMonster(mon: Monster, pos: Point, active = true) {
+        mon.pos = pos
         this.monsters.push(mon)
-        this.scheduler.add(mon, true)
+        if (active) {
+            this.scheduler.add(mon, true)
+            mon.active = true
+        }
     }
     iter(lb: Point, ub: Point, cb: (t: Tile, p: Point) => void) {
         for (let y = 0; y < this.height; y++) {
@@ -99,8 +106,7 @@ export class LevelScreen extends Screen {
         this.center = level.start
     }
     enter() {
-        this.level.addMonster(this.player)
-        this.player.pos = this.level.start
+        this.level.addMonster(this.player, this.level.start)
         this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!")
     }
     render(display: Display) {
@@ -135,9 +141,13 @@ export class LevelScreen extends Screen {
                         vis.draw(display, p, 'gray')
                     } else if (vis > 0) {
                         let tile = this.level.tile(po)
+                        if (tile instanceof Monster && !tile.active) {
+                            this.level.scheduler.add(tile, true)
+                            tile.active = true
+                        }
                         let col = Color.fromString(tile.fg)
-                        col = Color.interpolate(col, Color.fromString('gray'),
-                            vis * .03)
+                        // col = Color.interpolate(col, Color.fromString('gray'),
+                        //     vis * .03)
                         tile.draw(display, p, Color.toHex(col))
                     }
                 }

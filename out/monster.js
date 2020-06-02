@@ -12,6 +12,7 @@ var Damage;
     Damage["LECTURE"] = "lecture";
     Damage["MATH"] = "math";
     Damage["RECURSION"] = "recursion";
+    Damage["CS"] = "computer";
     Damage["LITERATURE"] = "literature";
     Damage["RELIGION"] = "religion";
     Damage["ANIME"] = "anime";
@@ -20,14 +21,15 @@ var Damage;
     Damage["LOGIC"] = "logic";
 })(Damage || (Damage = {}));
 let deaths = {
-    [Damage.LECTURE]: ['have failed', 'has failed'],
-    [Damage.MATH]: ['are left as an exercise for the reader', 'is left as an exercise for the reader'],
-    [Damage.RECURSION]: ['are sent into an infinite loop', 'is sent into an infinite loop'],
-    [Damage.RELIGION]: ['are condemned to hell', 'is condemned to hell'],
-    [Damage.ANIME]: ['are sent to the shadow realm!!', 'is sent to the shadow realm!!'],
-    [Damage.CRINGE]: ['loose subscriber', 'looses subscriber'],
-    [Damage.COVID]: ['die of Coronavirus', 'dies of Coronavirus'],
-    [Damage.LOGIC]: ['are destroyed by facts and logic', 'is destroyed by facts and logic'],
+    [Damage.LECTURE]: [' have failed', ' has failed'],
+    [Damage.MATH]: [' are left as an exercise for the reader', ' is left as an exercise for the reader'],
+    [Damage.RECURSION]: ['r stack has overflowed', "'s stack has overflowed"],
+    [Damage.CS]: [' have been garbage collected', 'has been garbage collected'],
+    [Damage.RELIGION]: [' are condemned to hell', ' is condemned to hell'],
+    [Damage.ANIME]: [' are sent to the shadow realm!!', ' is sent to the shadow realm!!'],
+    [Damage.CRINGE]: [' loose subscriber', ' looses subscriber'],
+    [Damage.COVID]: [' die of Coronavirus', ' dies of Coronavirus'],
+    [Damage.LOGIC]: [' are destroyed by facts and logic', ' is destroyed by facts and logic'],
 };
 export default class Monster extends Tile {
     constructor(name, ch, fg, bg, props) {
@@ -45,6 +47,7 @@ export default class Monster extends Tile {
         if (this.props.impassable == null) {
             this.props.impassable = true;
         }
+        this.active = false;
         this.effects = [];
     }
     getSpeed() {
@@ -134,10 +137,10 @@ export default class Monster extends Tile {
         if (mon.health <= 0) {
             if (weapon[2] in deaths) {
                 if (mon instanceof Player) {
-                    msgs.push('You ' + deaths[weapon[2]][0] + '!');
+                    msgs.push('You' + deaths[weapon[2]][0] + '!');
                 }
                 else {
-                    msgs.push('The ' + mon.name + ' ' + deaths[weapon[2]][1] + '!');
+                    msgs.push('The ' + mon.name + deaths[weapon[2]][1] + '!');
                 }
             }
             else {
@@ -152,83 +155,91 @@ export default class Monster extends Tile {
         return msgs;
     }
 }
-let mons = [
-    [.3, ['roach', 'r', 'brown', {
-                desc: 'a monstrous roach',
-                sight: 5,
-                maxhealth: 5,
-                weapons: [[die('1d6'), ['disgusts'], Damage.GROSS]],
-            }]],
-    [.1, ['bee', 'B', 'yellow', {
-                desc: 'a friendly bee',
-                sight: 5,
-                friendly: true,
-                maxhealth: 2,
-                weapons: [[die('1d4'), ['stings'], Damage.POISON]],
-                resistance: {
-                    [Damage.WEED]: -2
-                }
-            }]],
-    [.1, ['wasp', 'w', 'yellow', {
-                desc: 'an angry wasp',
-                sight: 5,
-                speed: 200,
-                maxhealth: 2,
-                weapons: [[die('1d4'), ['stings'], Damage.POISON]],
-                resistance: {
-                    [Damage.WEED]: -2
-                }
-            }]],
-    [.2, ['professor', 'P', 'lightblue', {
-                desc: 'a wandering professor',
-                sight: 9,
-                maxhealth: 10,
-                weapons: [[die('1d8'), ['lectures', 'confuses', 'harshly grades', 'curves'], Damage.LECTURE]],
-                resistance: {
-                    [Damage.LECTURE]: 2
-                }
-            }]],
-    [.1, ['math professor', 'P', 'red', {
-                desc: 'a math professor',
-                sight: 9,
-                maxhealth: 10,
-                weapons: [
-                    [die('1d8'), ['disproves', 'measures', 'calculates', 'integrates', 'divides'], Damage.MATH],
-                    [die('1d8'), ['recurses', 'performs induction on'], Damage.RECURSION]
-                ],
-                resistance: {
-                    [Damage.LECTURE]: 2,
-                    [Damage.RECURSION]: 3
-                }
-            }]],
-    [.1, ['preacher', 'P', 'yellow', {
-                desc: 'a street preacher',
-                sight: 12,
-                maxhealth: 10,
-                weapons: [[die('1d6'), ['hurls brimstone at', 'devolves', 'berates', 'damns', 'debates'], Damage.RELIGION]],
-                resistance: {
-                    [Damage.LOGIC]: 4
-                }
-            }]],
-    [.2, ['student', '@', 'green', {
-                desc: 'a lost student',
-                friendly: true,
-                sight: 10,
-                maxhealth: 6,
-                weapons: [[die('1d12'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
-                resistance: {
-                    [Damage.LECTURE]: -2,
-                    [Damage.WEED]: 2
-                }
-            }]]
-];
-let weight = mons.map(m => m[0]).reduce((a, b) => a + b, 0);
+export function mkMonster(m) {
+    let [w, ...as] = m;
+    return new Monster(...as);
+}
+export let monsters = {
+    roach: [.1, 'roach', 'r', 'brown', {
+            desc: 'a monstrous roach',
+            sight: 5,
+            maxhealth: 5,
+            weapons: [[die('1d6'), ['disgusts'], Damage.GROSS]],
+        }],
+    bee: [.1, 'bee', 'B', 'yellow', {
+            desc: 'a friendly bee',
+            sight: 5,
+            friendly: true,
+            maxhealth: 2,
+            weapons: [[die('1d4'), ['stings'], Damage.POISON]],
+            resistance: {
+                [Damage.WEED]: -2
+            }
+        }],
+    wasp: [.1, 'wasp', 'w', 'yellow', {
+            desc: 'an angry wasp',
+            sight: 5,
+            speed: 200,
+            maxhealth: 2,
+            weapons: [[die('1d4'), ['stings'], Damage.POISON]],
+            resistance: {
+                [Damage.WEED]: -2
+            }
+        }],
+    prof: [.2, 'professor', 'P', 'lightblue', {
+            desc: 'a wandering professor',
+            sight: 9,
+            maxhealth: 10,
+            weapons: [[die('1d8'), ['lectures', 'confuses', 'harshly grades', 'curves'], Damage.LECTURE]],
+            resistance: {
+                [Damage.LECTURE]: 2
+            }
+        }],
+    mprof: [.1, 'math professor', 'P', 'red', {
+            desc: 'a math professor',
+            sight: 9,
+            maxhealth: 10,
+            weapons: [
+                [die('1d8'), ['disproves', 'measures', 'calculates', 'integrates', 'divides'], Damage.MATH],
+                [die('1d8'), ['recurses', 'performs induction on'], Damage.RECURSION]
+            ],
+            resistance: {
+                [Damage.LECTURE]: 2,
+                [Damage.RECURSION]: 3
+            }
+        }],
+    preacher: [.1, 'preacher', 'P', 'yellow', {
+            desc: 'a street preacher',
+            sight: 12,
+            maxhealth: 10,
+            weapons: [[die('1d6'), ['hurls brimstone at', 'devolves', 'berates', 'damns', 'debates'], Damage.RELIGION]],
+            resistance: {
+                [Damage.LOGIC]: 4
+            }
+        }],
+    student: [.2, 'student', '@', 'green', {
+            desc: 'a lost student',
+            friendly: true,
+            sight: 10,
+            maxhealth: 6,
+            weapons: [[die('1d12'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
+            resistance: {
+                [Damage.LECTURE]: -2,
+                [Damage.WEED]: 2
+            }
+        }]
+};
+let weight = 0;
+for (let n in monsters) {
+    weight += monsters[n][0];
+}
 export function genMonster() {
     let pct = RNG.getUniform() * weight;
-    for (let [w, m] of mons) {
-        pct -= w;
+    for (let n in monsters) {
+        let s = monsters[n];
+        pct -= s[0];
         if (pct < 0) {
-            return new Monster(...m);
+            return mkMonster(s);
         }
     }
 }

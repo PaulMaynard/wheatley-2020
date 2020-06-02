@@ -1,7 +1,7 @@
 import { RNG, KEYS, Color } from './lib/ROT/index.js';
 import Tile from './tile.js';
 import Screen from './screen.js';
-import { genMonster } from './monster.js';
+import Monster, { genMonster } from './monster.js';
 import Point from './point.js';
 import Speed from './lib/ROT/scheduler/speed.js';
 import HelpScreen from './help.js';
@@ -22,9 +22,13 @@ export class Level {
             let p = new Point(x, y);
             return this.in(p) && !this.tile(p).props.opaque;
         });
+        this.monsters = new Array();
         let gen = generator(width, height);
-        gen.create((x, y, t) => {
+        gen.create((x, y, t, m) => {
             this.tiles[y][x] = t;
+            if (m) {
+                this.addMonster(m, new Point(x, y), false);
+            }
         });
         while (true) {
             let x = RNG.getUniformInt(0, this.width - 1);
@@ -34,23 +38,25 @@ export class Level {
                 break;
             }
         }
-        this.monsters = new Array();
         for (let i = 0; i < nmonsters; i++) {
             let mon = genMonster();
             while (true) {
                 let x = RNG.getUniformInt(0, this.width - 1);
                 let y = RNG.getUniformInt(0, this.height - 1);
                 if (!this.tiles[y][x].props.impassable) {
-                    mon.pos = new Point(x, y);
-                    this.addMonster(mon);
+                    this.addMonster(mon, new Point(x, y));
                     break;
                 }
             }
         }
     }
-    addMonster(mon) {
+    addMonster(mon, pos, active = true) {
+        mon.pos = pos;
         this.monsters.push(mon);
-        this.scheduler.add(mon, true);
+        if (active) {
+            this.scheduler.add(mon, true);
+            mon.active = true;
+        }
     }
     iter(lb, ub, cb) {
         for (let y = 0; y < this.height; y++) {
@@ -83,8 +89,7 @@ export class LevelScreen extends Screen {
         this.center = level.start;
     }
     enter() {
-        this.level.addMonster(this.player);
-        this.player.pos = this.level.start;
+        this.level.addMonster(this.player, this.level.start);
         this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!");
     }
     render(display) {
@@ -115,8 +120,13 @@ export class LevelScreen extends Screen {
                     }
                     else if (vis > 0) {
                         let tile = this.level.tile(po);
+                        if (tile instanceof Monster && !tile.active) {
+                            this.level.scheduler.add(tile, true);
+                            tile.active = true;
+                        }
                         let col = Color.fromString(tile.fg);
-                        col = Color.interpolate(col, Color.fromString('gray'), vis * .03);
+                        // col = Color.interpolate(col, Color.fromString('gray'),
+                        //     vis * .03)
                         tile.draw(display, p, Color.toHex(col));
                     }
                 }

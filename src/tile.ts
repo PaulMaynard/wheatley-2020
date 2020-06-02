@@ -70,7 +70,6 @@ namespace Tile {
         desc: 'a desk',
         impassable: false,
     })
-
 }
 
 export default Tile
