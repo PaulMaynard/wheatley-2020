@@ -1,5 +1,5 @@
 import { RNG, KEYS, Color } from './lib/ROT/index.js';
-import Tile from './tile.js';
+import Tile, { tiles } from './tile.js';
 import Screen from './screen.js';
 import { genMonster } from './monster.js';
 import Point from './point.js';
@@ -25,14 +25,14 @@ export class Level {
         let gen = generator(width, height);
         gen.create((x, y, type) => {
             if (type == 1) {
-                this.tiles[y][x] = Tile.wall;
+                this.tiles[y][x] = tiles.wall;
             }
             else {
-                this.tiles[y][x] = Tile.floor;
+                this.tiles[y][x] = tiles.floor;
             }
         });
         for (let room of gen.getRooms()) {
-            room.getDoors((x, y) => this.tiles[y][x] = Tile.door);
+            room.getDoors((x, y) => this.tiles[y][x] = tiles.door);
         }
         let room = RNG.getItem(gen.getRooms());
         this.start = new Point(...room.getCenter());

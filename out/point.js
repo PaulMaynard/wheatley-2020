@@ -13,16 +13,10 @@ export default class Point {
     minus(p) {
         return new Point(this.x - p.x, this.y - p.y);
     }
-    times(n) {
-        return new Point(this.x * n, this.y * n);
-    }
-    right() {
-        return new Point(this.y, -this.x);
-    }
     equals(p) {
         return this.x == p.x && this.y == p.y;
     }
-    manhattan() {
+    manhatan() {
         return Math.abs(this.x) + Math.abs(this.y);
     }
     chebyshev() {

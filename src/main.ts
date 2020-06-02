@@ -6,7 +6,6 @@ import { Game } from "./game.js"
 import { LevelScreen, Level } from "./level.js"
 import { player } from "./monster.js"
 import WheatleyGen from "./gen.js"
-import Point from "./point.js"
 
 // Display.Rect.cache = true
 
@@ -15,21 +14,22 @@ let deb = new Display ({
     height: 45,
     fontSize: 15,
 })
-let w = new WheatleyGen(100, 45)
-w.tiles.forEach((r, y) => {
-    r.forEach((t, x) => {
-        t.draw(deb, new Point(x, y))
-    })
+let w = new WheatleyGen(100, 45, 5, 4)
+let colors = ['white', 'gray', 'red']
+console.log(w)
+// w.create(deb.DEBUG)
+w.create((x, y, i) => {
+    deb.draw(x, y, ' ', '', colors[i]);
 })
 
 document.body.appendChild(deb.getContainer())
 document.body.appendChild(document.createElement('br'))
 
-// let display = new Display({
-//     width: 100,
-//     height: 45,
-//     fontSize: 18,
-// })
+let display = new Display({
+    width: 100,
+    height: 45,
+    fontSize: 18,
+})
 
 // document.body.appendChild(display.getContainer())
 

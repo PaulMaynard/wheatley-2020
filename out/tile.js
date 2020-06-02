@@ -1,4 +1,4 @@
-export class Tile {
+export default class Tile {
     constructor(ch, fg, bg = { desc: '' }, props = { desc: '' }) {
         this.ch = ch;
         this.fg = fg;
@@ -13,25 +13,25 @@ export class Tile {
         display.draw(p.x, p.y, this.ch, fg, bg);
     }
 }
-(function (Tile) {
-    Tile.wall = new Tile('#', 'white', {
+export var tiles;
+(function (tiles) {
+    tiles.wall = new Tile('#', 'white', {
         desc: 'a wall',
         impassable: true,
         opaque: true
     });
-    Tile.floor = new Tile('.', 'white', {
+    tiles.floor = new Tile('.', 'white', {
         desc: 'a floor'
     });
-    Tile.opendoor = new Tile('\'', 'brown', {
+    tiles.opendoor = new Tile('\'', 'brown', {
         desc: 'an opened door'
     });
-    Tile.door = new Tile('+', 'brown', {
+    tiles.door = new Tile('+', 'brown', {
         desc: 'a door',
         impassable: true,
         opaque: true,
-        open: Tile.opendoor
+        open: tiles.opendoor
     });
-    Tile.opendoor.props.close = Tile.door;
-})(Tile || (Tile = {}));
-export default Tile;
+    tiles.opendoor.props.close = tiles.door;
+})(tiles || (tiles = {}));
 //# sourceMappingURL=tile.js.map
