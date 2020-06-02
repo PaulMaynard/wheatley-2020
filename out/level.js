@@ -6,6 +6,7 @@ import Point from './point.js';
 import Speed from './lib/ROT/scheduler/speed.js';
 import HelpScreen from './help.js';
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js';
+import { Feature } from './gen.js';
 export class Level {
     constructor(game, width, height, nmonsters, generator) {
         this.game = game;
@@ -24,18 +25,24 @@ export class Level {
         });
         let gen = generator(width, height);
         gen.create((x, y, type) => {
-            if (type == 1) {
+            if (type == Feature.DOOR) {
+                this.tiles[y][x] = tiles.door;
+            }
+            else if (type == Feature.WALL) {
                 this.tiles[y][x] = tiles.wall;
             }
             else {
                 this.tiles[y][x] = tiles.floor;
             }
         });
-        for (let room of gen.getRooms()) {
-            room.getDoors((x, y) => this.tiles[y][x] = tiles.door);
+        while (true) {
+            let x = RNG.getUniformInt(0, this.width - 1);
+            let y = RNG.getUniformInt(0, this.height - 1);
+            if (!this.tiles[y][x].props.impassable) {
+                this.start = new Point(x, y);
+                break;
+            }
         }
-        let room = RNG.getItem(gen.getRooms());
-        this.start = new Point(...room.getCenter());
         this.monsters = new Array();
         for (let i = 0; i < nmonsters; i++) {
             let mon = genMonster();
