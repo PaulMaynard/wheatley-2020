@@ -9,7 +9,7 @@ let deb = new Display({
 });
 document.body.appendChild(deb.getContainer());
 document.body.appendChild(document.createElement('br'));
-let w = new WheatleyGen(200, 200, 5, 4);
+let w = new WheatleyGen(200, 200, 7, 6);
 let colors = ['white', 'gray', 'red'];
 console.log(w);
 // w.create(deb.DEBUG)
