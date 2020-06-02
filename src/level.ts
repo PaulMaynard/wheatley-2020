@@ -107,7 +107,7 @@ export class LevelScreen extends Screen {
     }
     enter() {
         this.level.addMonster(this.player, this.level.start)
-        this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!")
+        this.game.log("Welcome to Wheatley! Use the arrow keys to move around, and don't forget to social distance!")
     }
     render(display: Display) {
         let dim = new Point(
