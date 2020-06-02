@@ -1,5 +1,6 @@
 import Map, { CreateCallback } from "./lib/ROT/map/map.js"
 import { RNG } from "./lib/ROT/index.js"
+import Dungeon from "./lib/ROT/map/dungeon.js"
 
 export enum Feature {
     FLOOR = 0,
@@ -7,8 +8,12 @@ export enum Feature {
     DOOR = 2
 }
 
+function clamp(n: number, a: number, b: number) {
+    return Math.min(Math.max(a, n), b)
+}
+
 // kinda hacky solution
-export default class WheatleyGen extends Map {
+export default class WheatleyGen extends Dungeon {
     constructor(width: number, height: number, private level: number, private size: number) {
         super(width, height)
     }
@@ -18,69 +23,64 @@ export default class WheatleyGen extends Map {
     }
     private _create(cb: (x: number, y: number, contents: Feature) => void,
                     s: number, l: number, axis: boolean, x0: number, x1: number, y0: number, y1: number) {
-        // console.log('_create(cb', s,  l, axis, x0, x1, y0, y1, ')')
+        console.log('_create(cb', s, l, axis, x0, x1, y0, y1, ')')
+        if (x1 < x0 || y1 < y0) return
+        if (l < -1) return
         if (x1 - x0 > 5 || y1 - y0 > 5) {
             if (axis) { // x axis
-                let x = RNG.getUniformInt(x0, x1-1)
-                // console.log('create hall at x = ', x)
-                for(let y = y0; y < y1; y++) {
-                    cb(x, y, l > 0 ? Feature.DOOR : Feature.WALL)
+                if (l > 1) { // hallways
+                    let x = clamp(RNG.getNormal((x0+x1)/2, (x1-x0)/6) | 0, x0+1, x1-l-1) //RNG.getUniformInt(x0+1, x1-l-1)
+                    let door1 = RNG.getUniformInt(0, 1)
+                    let door2 = RNG.getUniformInt(0, 1)
+
+                    for (let i = 0; i < l; i++) {
+                        cb(x+i, y0-1, door1 ? Feature.DOOR : Feature.FLOOR)
+                        cb(x+i, y1, door2 ? Feature.DOOR : Feature.FLOOR)
+                        }
+                    for(let y = y0; y < y1; y++) {
+                        cb(x-1, y, Feature.WALL)
+                        for (let i = 0; i < l; i++) {
+                            cb(x+i, y, Feature.FLOOR)
+                        }
+                        cb(x+l, y, Feature.WALL)
+                    }
+                    this._create(cb, s, l-1, !axis, x0, x-1, y0, y1)
+                    this._create(cb, s, l-1, !axis, x+l+1, x1, y0, y1)
+                } else {
+                    let x = RNG.getUniformInt(x0, x1-1)
+                    for(let y = y0; y < y1; y++) {
+                        cb(x, y, Feature.WALL)
+                    }
+                    this._create(cb, s, l-1, !axis, x0, x, y0, y1)
+                    this._create(cb, s, l-1, !axis, x+1, x1, y0, y1)
                 }
-                this._create(cb, s, l-1, !axis, x0, x, y0, y1)
-                this._create(cb, s, l-1, !axis, x+1, x1, y0, y1)
             } else {
-                let y = RNG.getUniformInt(y0, y1-1)
-                // console.log('create hall at y = ', y)
-                for(let x = x0; x < x1; x++) {
-                    cb(x, y, l > 0 ? Feature.DOOR : Feature.WALL)
+                if (l > 1) {
+                    let y = clamp(RNG.getNormal((y0+y1)/2, (y1-y0)/6) | 0, y0+1, y1-l-1) //RNG.getUniformInt(x0+1, x1-l-1)
+                    let door1 = RNG.getUniformInt(0, 1)
+                    let door2 = RNG.getUniformInt(0, 1)
+                    for (let i = 0; i < l; i++) {
+                        cb(x0-1, y+i, door1 ? Feature.DOOR : Feature.FLOOR)
+                        cb(x1, y+i, door2 ? Feature.DOOR : Feature.FLOOR)
+                    }
+                    for(let x = x0; x < x1; x++) {
+                        cb(x, y-1, Feature.WALL)
+                        for (let i = 0; i < l; i++) {
+                            cb(x, y+i, Feature.FLOOR)
+                        }
+                        cb(x, y+l, Feature.WALL)
+                    }
+                    this._create(cb, s, l-1, !axis, x0, x1, y0, y-1)
+                    this._create(cb, s, l-1, !axis, x0, x1, y+l+1, y1)
+                } else {
+                    // let y = RNG.getUniformInt(y0, y1-1)
+                    // for(let x = x0; x < x1; x++) {
+                    //     cb(x, y, Feature.WALL)
+                    // }
+                    // this._create(cb, s, l-1, !axis, x0, x1, y0, y)
+                    // this._create(cb, s, l-1, !axis, x0, x1, y+1, y1)
                 }
-                this._create(cb, s, l-1, !axis, x0, x1, y0, y)
-                this._create(cb, s, l-1, !axis, x0, x1, y+1, y1)
             }
         }
-        // place corridor (l wide)
-        // if (l > 0) {
-        //     let axmin: number,
-        //         axmax: number,
-        //         offmin: number,
-        //         offmax: number,
-        //         realcb: typeof cb
-        //     console.log(Axis[axis])
-        //     if (axis == Axis.X) {
-        //         axmin = x0
-        //         axmax = x1
-        //         offmin = y0
-        //         offmax = y1
-        //         realcb = cb
-        //     } else {
-        //         axmin = y0
-        //         axmax = y1
-        //         offmin = x0
-        //         offmax = x1
-        //         realcb = (i, j, c) => cb(j, i, c)
-        //     }
-        //     console.log(offmin, offmax, l)
-        //     let corr = RNG.getUniformInt(axmin + 1, axmax - l - 1)
-        //     for (let i = offmin; i < offmax; i++) {
-        //         realcb(corr-1, i, Feature.WALL)
-        //         // realcb(corr+l, i, Feature.WALL)
-        //         // for (let j = 0; j < l; j++) {
-        //         //     realcb(corr+j, i, Feature.FLOOR)
-        //         // }
-        //     }
-        //     if (axis == Axis.X) {
-        //         this._create(cb, l-1, Axis.Y, x0, corr - 1, y0, y1)
-        //         this._create(cb, l-1, Axis.Y, corr /* + l */ + 1, x1, y0, y1)
-        //     } else {
-        //         this._create(cb, l-1, Axis.X, x0, x1, y0, corr-1)
-        //         this._create(cb, l-1, Axis.Y, x0, x1, corr /* + l */ + 1, y1)
-        //     }
-        //     return
-        // }
-        // // for (let x = x0; x < x1; x++) {
-        // //     for (let y = y0; y < y1; y++) {
-        // //         cb(x, y, Feature.FLOOR)
-        // //     }
-        // // }
     }
 }

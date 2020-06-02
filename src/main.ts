@@ -10,20 +10,21 @@ import WheatleyGen from "./gen.js"
 // Display.Rect.cache = true
 
 let deb = new Display ({
-    width: 100,
-    height: 45,
-    fontSize: 15,
+    width: 200,
+    height: 200,
+    fontSize: 4,
+    forceSquareRatio: true
 })
-let w = new WheatleyGen(100, 45, 5, 4)
+document.body.appendChild(deb.getContainer())
+document.body.appendChild(document.createElement('br'))
+let w = new WheatleyGen(200, 200, 5, 4)
 let colors = ['white', 'gray', 'red']
 console.log(w)
 // w.create(deb.DEBUG)
 w.create((x, y, i) => {
     deb.draw(x, y, ' ', '', colors[i]);
 })
-
-document.body.appendChild(deb.getContainer())
-document.body.appendChild(document.createElement('br'))
+console.log('done')
 
 let display = new Display({
     width: 100,
