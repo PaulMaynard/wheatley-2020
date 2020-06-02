@@ -11,7 +11,7 @@ export interface TileProps {
     desc: string
 }
 
-export default class Tile {
+export class Tile {
     bg: string
     props: TileProps
     constructor(ch: string, fg: string, bg: string, props?: TileProps)
@@ -34,7 +34,7 @@ export default class Tile {
     }
 }
 
-export namespace tiles {
+export namespace Tile {
     export let wall = new Tile('#', 'white', {
         desc: 'a wall',
         impassable: true,
@@ -54,3 +54,5 @@ export namespace tiles {
     })
     opendoor.props.close = door
 }
+
+export default Tile

@@ -1,6 +1,6 @@
 import Dungeon from './lib/ROT/map/dungeon.js'
 import { RNG, KEYS, Display, Color } from './lib/ROT/index.js'
-import Tile, { tiles } from './tile.js'
+import Tile from './tile.js'
 import Screen from './screen.js'
 import Monster, { genMonster, Player } from './monster.js'
 import Point from './point.js'
@@ -10,7 +10,6 @@ import Speed from './lib/ROT/scheduler/speed.js'
 import { Game } from './game.js'
 import HelpScreen from './help.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
-import { Feature } from './gen.js'
 
 
 export class Level {
@@ -37,15 +36,15 @@ export class Level {
         })
 
         let gen = generator(width, height)
-        gen.create((x, y, type: Feature) => {
+        gen.create((x, y, type) => {
             if (type == 1) {
-                this.tiles[y][x] = tiles.wall
+                this.tiles[y][x] = Tile.wall
             } else {
-                this.tiles[y][x] = tiles.floor
+                this.tiles[y][x] = Tile.floor
             }
         })
         for (let room of gen.getRooms()) {
-            room.getDoors((x, y) => this.tiles[y][x] = tiles.door)
+            room.getDoors((x, y) => this.tiles[y][x] = Tile.door)
         }
         let room = RNG.getItem(gen.getRooms())
         this.start = new Point(...room.getCenter() as [number, number])
