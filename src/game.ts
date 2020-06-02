@@ -4,6 +4,7 @@ import Screen from "./screen.js"
 
 export class Game {
     msgs: string[] = []
+    madness: number = 0
     constructor(private display: Display, private screens: Screen[]) {
         window.addEventListener("keydown", e => {
             this.activeScreen.handle(e.keyCode)

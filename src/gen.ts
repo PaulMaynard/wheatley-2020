@@ -1,6 +1,7 @@
 import Map, { CreateCallback } from "./lib/ROT/map/map.js"
 import { RNG } from "./lib/ROT/index.js"
 import Dungeon from "./lib/ROT/map/dungeon.js"
+import Tile from "./tile.js"
 
 export enum Feature {
     FLOOR = 0,
@@ -12,13 +13,20 @@ function clamp(n: number, a: number, b: number) {
     return Math.min(Math.max(a, n), b)
 }
 
-// kinda hacky solution
-export default class WheatleyGen extends Dungeon {
+export abstract class Gen {
+    constructor(
+        protected _width: number,
+        protected _height: number
+    ) {}
+    abstract create(cb: (x: number, y: number, contents: Tile) => void): void
+}
+
+export default class WheatleyGen extends Gen {
     constructor(width: number, height: number, private level: number, private size: number) {
         super(width, height)
     }
-    create(cb: (x: number, y: number, contents: Feature) => void) {
-        let cbhelper = (x, y, v) => {
+    create(cb: (x: number, y: number, contents: Tile) => void) {
+        let cbhelper = (x: number, y: number, v: Tile) => {
             if (!(x < 0 || x >= this._width || y < 0 || y >= this._height)) {
                 cb(x, y, v)
             }
@@ -27,15 +35,15 @@ export default class WheatleyGen extends Dungeon {
                      0, this._width, 0, this._height)
         // close off edges
         for (let y = 0; y < this._width; y++) {
-            cbhelper(0, y, Feature.WALL)
-            cbhelper(this._width-1, y, Feature.WALL)
+            cbhelper(0, y, Tile.wall)
+            cbhelper(this._width-1, y, Tile.wall)
         }
         for (let x = 1; x < this._height-1; x++) {
-            cbhelper(x, 0, Feature.WALL)
-            cbhelper(x, this._height-1, Feature.WALL)
+            cbhelper(x, 0, Tile.wall)
+            cbhelper(x, this._height-1, Tile.wall)
         }
     }
-    private _create(cb: (x: number, y: number, contents: Feature) => void,
+    private _create(cb: (x: number, y: number, contents: Tile) => void,
                     s: number, l: number, axis: boolean, x0: number, x1: number, y0: number, y1: number) {
         if (x1 < x0 || y1 < y0) return
         if (l > 1) { // hallways
@@ -45,20 +53,20 @@ export default class WheatleyGen extends Dungeon {
                 let door2 = RNG.getUniformInt(0, 1)
 
                 for (let i = 0; i < l; i++) {
-                    cb(x+i, y0-1, door1 ? Feature.DOOR : Feature.FLOOR)
-                    cb(x+i, y1, door2 ? Feature.DOOR : Feature.FLOOR)
+                    cb(x+i, y0-1, door1 ? Tile.door : Tile.floor)
+                    cb(x+i, y1, door2 ? Tile.door : Tile.floor)
                 }
-                cb(x-1, y0-1, Feature.WALL)
-                cb(x+l, y0-1, Feature.WALL)
-                cb(x-1, y1, Feature.WALL)
-                cb(x+l, y1, Feature.WALL)
+                cb(x-1, y0-1, Tile.wall)
+                cb(x+l, y0-1, Tile.wall)
+                cb(x-1, y1, Tile.wall)
+                cb(x+l, y1, Tile.wall)
 
                 for(let y = y0; y < y1; y++) {
-                    cb(x-1, y, Feature.WALL)
+                    cb(x-1, y, Tile.wall)
                     for (let i = 0; i < l; i++) {
-                        cb(x+i, y, Feature.FLOOR)
+                        cb(x+i, y, Tile.floor)
                     }
-                    cb(x+l, y, Feature.WALL)
+                    cb(x+l, y, Tile.wall)
                 }
                 this._create(cb, s, l-1, !axis, x0, x-1, y0, y1)
                 this._create(cb, s, l-1, !axis, x+l+1, x1, y0, y1)
@@ -68,20 +76,20 @@ export default class WheatleyGen extends Dungeon {
                 let door1 = RNG.getUniformInt(0, 1)
                 let door2 = RNG.getUniformInt(0, 1)
                 for (let i = 0; i < l; i++) {
-                    cb(x0-1, y+i, door1 ? Feature.DOOR : Feature.FLOOR)
-                    cb(x1, y+i, door2 ? Feature.DOOR : Feature.FLOOR)
+                    cb(x0-1, y+i, door1 ? Tile.door : Tile.floor)
+                    cb(x1, y+i, door2 ? Tile.door : Tile.floor)
                 }
-                cb(x0-1, y-1, Feature.WALL)
-                cb(x0-1, y+l, Feature.WALL)
-                cb(x1, y-1, Feature.WALL)
-                cb(x1, y+l, Feature.WALL)
+                cb(x0-1, y-1, Tile.wall)
+                cb(x0-1, y+l, Tile.wall)
+                cb(x1, y-1, Tile.wall)
+                cb(x1, y+l, Tile.wall)
 
                 for(let x = x0; x < x1; x++) {
-                    cb(x, y-1, Feature.WALL)
+                    cb(x, y-1, Tile.wall)
                     for (let i = 0; i < l; i++) {
-                        cb(x, y+i, Feature.FLOOR)
+                        cb(x, y+i, Tile.floor)
                     }
-                    cb(x, y+l, Feature.WALL)
+                    cb(x, y+l, Tile.wall)
                 }
                 this._create(cb, s, l-1, !axis, x0, x1, y0, y-1)
                 this._create(cb, s, l-1, !axis, x0, x1, y+l+1, y1)
@@ -89,7 +97,7 @@ export default class WheatleyGen extends Dungeon {
         } else { // rooms
             for (let x = x0; x < x1; x++) {
                 for (let y = y0; y < y1; y++) {
-                    cb(x, y, Feature.WALL)
+                    cb(x, y, Tile.wall)
                 }
             }
             if (RNG.getPercentage() < 10) return // empty block
@@ -121,7 +129,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length-1
                     }
-                    y0 = newy0 - RNG.getUniformInt(0, s-2)
+                    y0 = newy0 //- RNG.getUniformInt(0, s-2)
                 },
                 () => { // bottom
                     if (y1 == this._height-1 || y0 >= y1) return
@@ -145,7 +153,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length-1
                     }
-                    y1 = newy1 + RNG.getUniformInt(0, s-2)
+                    y1 = newy1 //+ RNG.getUniformInt(0, s-2)
 
                 },
                 () => { // left
@@ -161,7 +169,8 @@ export default class WheatleyGen extends Dungeon {
                         for (let x = 0; x < r.length; x++) {
                             for (let y = 0; y < r[x].length; y++) {
                                 if (r[x][y] != null) {
-                                    cb(x0+x-1, i+y-1, r[x][y])
+                                    let t = r[x][y]
+                                    cb(x0+x-1, i+y-1, t.props.flip ? t.props.flip : t)
                                 }
                             }
                             if (x0+x > newx0) {
@@ -170,7 +179,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length-1
                     }
-                    x0 = newx0 - RNG.getUniformInt(0, s-2)
+                    x0 = newx0 //- RNG.getUniformInt(0, s-2)
                 },
                 () => { // right
                     if (x1 == this._height-1 || x0 >= x1) return
@@ -185,7 +194,8 @@ export default class WheatleyGen extends Dungeon {
                         for (let x = 0; x < r.length; x++) {
                             for (let y = 0; y < r[x].length; y++) {
                                 if (r[x][y] != null) {
-                                    cb(x1-x, i+y-1, r[x][y])
+                                    let t = r[x][y]
+                                    cb(x1-x, i+y-1, t.props.flip ? t.props.flip : t)
                                 }
                             }
                             if (x1-x < newx1) {
@@ -194,50 +204,64 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length-1
                     }
-                    x1 = newx1 + RNG.getUniformInt(0, s-2)
+                    x1 = newx1 //+ RNG.getUniformInt(0, s-2)
                 }
             ];
             RNG.shuffle(sides).forEach(s => s())
         }
     }
-    private _mkroom(xmin: number, xmax: number, ymin: number, ymax: number): Feature[][] {
+    private _mkroom(xmin: number, xmax: number, ymin: number, ymax: number): Tile[][] {
+        let w = xmin + RNG.getUniformInt(-1, 2)
+        let h = ymin
+        if (xmax < xmin*2) {
+            w = xmax
+        }
+        if (ymax < ymin*2) {
+            h = ymax
+        }
+        let r = new Array(h)
+        for (let y = 0; y < h; y++) {
+            r[y] = new Array(w)
+            for (let x = 0; x < w; x++) {
+                r[y][x] = Tile.floor
+            }
+        }
+        for (let y = 0; y < h; y++) {
+            r[y][0] = Tile.wall
+            r[y][w-1] = Tile.wall
+        }
+        for (let x = 1; x < w-1; x++) {
+            r[0][x] = Tile.wall
+            r[h-1][x] = Tile.wall
+        }
         let rtype = RNG.getPercentage()
-        if (rtype <= 100) { // regular classroom
-            let w = xmin + RNG.getUniformInt(-1, 2)
-            let h = ymin
-            if (xmax < xmin*2) {
-                w = xmax
+        if (rtype <= 100 && w > 5 && h > 7) { // regular classroom
+            // furniture
+            for (let x = 2; x < w-2; x++) {
+                r[1][x] = Tile.hboard
             }
-            if (ymax < ymin*2) {
-                h = ymax
-            }
-            let r = new Array(h)
-            for (let y = 0; y < h; y++) {
-                r[y] = new Array(w)
-                for (let x = 0; x < w; x++) {
-                    r[y][x] = Feature.FLOOR
+            for (let x = RNG.getUniformInt(1,2); x < w-1; x += 2) {
+                for (let y = 3; y < h-1; y += 1) {
+                    r[y][x] = Tile.desk
                 }
             }
             // walls
-            for (let y = 0; y < h; y++) {
-                r[y][0] = Feature.WALL
-                r[y][w-1] = Feature.WALL
+            // doors
+            if (RNG.getUniformInt(0, 1)) {
+                r[0][1] = Tile.door
+            } else {
+                r[0][w-2] = Tile.door
             }
-            for (let x = 1; x < w-1; x++) {
-                r[0][x] = Feature.WALL
-                r[h-1][x] = Feature.WALL
-            }
-            r[0][RNG.getUniformInt(1, w-2)] = Feature.DOOR
             if (h == ymax && RNG.getUniformInt(0, 1)) {
-                r[h-1][RNG.getUniformInt(1, w-2)] = Feature.DOOR
+                r[h-1][RNG.getUniformInt(1, w-2)] = Tile.door
             }
             if (h > 3 && RNG.getPercentage() < 25) {
-                r[RNG.getUniformInt(1, h-2)][0] = Feature.DOOR
+                r[RNG.getUniformInt(1, h-2)][0] = Tile.door
             }
             if (h > 3 && RNG.getPercentage() < 25) {
-                r[RNG.getUniformInt(1, h-2)][w-1] = Feature.DOOR
+                r[RNG.getUniformInt(1, h-2)][w-1] = Tile.door
             }
-            return r
         }
+        return r
     }
 }

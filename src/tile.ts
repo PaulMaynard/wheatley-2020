@@ -7,11 +7,12 @@ export interface TileProps {
     opaque?: boolean
     open?: Tile
     close?: Tile
+    flip?: Tile
     walk?: Tile
     desc: string
 }
 
-export default class Tile {
+class Tile {
     bg: string
     props: TileProps
     constructor(ch: string, fg: string, bg: string, props?: TileProps)
@@ -34,7 +35,7 @@ export default class Tile {
     }
 }
 
-export namespace tiles {
+namespace Tile {
     export let wall = new Tile('#', 'white', {
         desc: 'a wall',
         impassable: true,
@@ -53,4 +54,23 @@ export namespace tiles {
         open: opendoor
     })
     opendoor.props.close = door
+    export let vboard = new Tile('|', 'gray', {
+        desc: 'a blackboard',
+        impassable: true,
+        opaque: false,
+    })
+    export let hboard = new Tile('-', 'gray', {
+        desc: 'a blackboard',
+        impassable: true,
+        opaque: false,
+        flip: vboard
+    })
+    vboard.props.flip = hboard
+    export let desk = new Tile('я', 'brown', {
+        desc: 'a desk',
+        impassable: false,
+    })
+
 }
+
+export default Tile

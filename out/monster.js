@@ -52,7 +52,7 @@ export default class Monster extends Tile {
     }
     act(level) {
         for (let [eff, _] of this.effects) {
-            eff(this);
+            eff(this, level);
         }
         if (!(this.props.inactive || this instanceof Player)) {
             let mv;
@@ -239,6 +239,11 @@ export class Player extends Monster {
         this.effects.push([(self) => {
                 if (self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                     self.health++;
+                }
+            }, '']);
+        this.effects.push([(self, l) => {
+                if (RNG.getPercentage() <= 1) {
+                    l.game.madness++;
                 }
             }, '']);
     }

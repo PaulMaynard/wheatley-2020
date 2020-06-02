@@ -1,4 +1,4 @@
-export default class Tile {
+class Tile {
     constructor(ch, fg, bg = { desc: '' }, props = { desc: '' }) {
         this.ch = ch;
         this.fg = fg;
@@ -13,25 +13,41 @@ export default class Tile {
         display.draw(p.x, p.y, this.ch, fg, bg);
     }
 }
-export var tiles;
-(function (tiles) {
-    tiles.wall = new Tile('#', 'white', {
+(function (Tile) {
+    Tile.wall = new Tile('#', 'white', {
         desc: 'a wall',
         impassable: true,
         opaque: true
     });
-    tiles.floor = new Tile('.', 'white', {
+    Tile.floor = new Tile('.', 'white', {
         desc: 'a floor'
     });
-    tiles.opendoor = new Tile('\'', 'brown', {
+    Tile.opendoor = new Tile('\'', 'brown', {
         desc: 'an opened door'
     });
-    tiles.door = new Tile('+', 'brown', {
+    Tile.door = new Tile('+', 'brown', {
         desc: 'a door',
         impassable: true,
         opaque: true,
-        open: tiles.opendoor
+        open: Tile.opendoor
     });
-    tiles.opendoor.props.close = tiles.door;
-})(tiles || (tiles = {}));
+    Tile.opendoor.props.close = Tile.door;
+    Tile.vboard = new Tile('|', 'gray', {
+        desc: 'a blackboard',
+        impassable: true,
+        opaque: false,
+    });
+    Tile.hboard = new Tile('-', 'gray', {
+        desc: 'a blackboard',
+        impassable: true,
+        opaque: false,
+        flip: Tile.vboard
+    });
+    Tile.vboard.props.flip = Tile.hboard;
+    Tile.desk = new Tile('я', 'brown', {
+        desc: 'a desk',
+        impassable: false,
+    });
+})(Tile || (Tile = {}));
+export default Tile;
 //# sourceMappingURL=tile.js.map

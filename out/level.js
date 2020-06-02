@@ -1,12 +1,11 @@
 import { RNG, KEYS, Color } from './lib/ROT/index.js';
-import Tile, { tiles } from './tile.js';
+import Tile from './tile.js';
 import Screen from './screen.js';
 import { genMonster } from './monster.js';
 import Point from './point.js';
 import Speed from './lib/ROT/scheduler/speed.js';
 import HelpScreen from './help.js';
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js';
-import { Feature } from './gen.js';
 export class Level {
     constructor(game, width, height, nmonsters, generator) {
         this.game = game;
@@ -24,16 +23,8 @@ export class Level {
             return this.in(p) && !this.tile(p).props.opaque;
         });
         let gen = generator(width, height);
-        gen.create((x, y, type) => {
-            if (type == Feature.DOOR) {
-                this.tiles[y][x] = tiles.door;
-            }
-            else if (type == Feature.WALL) {
-                this.tiles[y][x] = tiles.wall;
-            }
-            else {
-                this.tiles[y][x] = tiles.floor;
-            }
+        gen.create((x, y, t) => {
+            this.tiles[y][x] = t;
         });
         while (true) {
             let x = RNG.getUniformInt(0, this.width - 1);

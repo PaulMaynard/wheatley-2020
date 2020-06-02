@@ -1,5 +1,5 @@
 import { RNG } from "./lib/ROT/index.js";
-import Dungeon from "./lib/ROT/map/dungeon.js";
+import Tile from "./tile.js";
 export var Feature;
 (function (Feature) {
     Feature[Feature["FLOOR"] = 0] = "FLOOR";
@@ -9,8 +9,13 @@ export var Feature;
 function clamp(n, a, b) {
     return Math.min(Math.max(a, n), b);
 }
-// kinda hacky solution
-export default class WheatleyGen extends Dungeon {
+export class Gen {
+    constructor(_width, _height) {
+        this._width = _width;
+        this._height = _height;
+    }
+}
+export default class WheatleyGen extends Gen {
     constructor(width, height, level, size) {
         super(width, height);
         this.level = level;
@@ -25,12 +30,12 @@ export default class WheatleyGen extends Dungeon {
         this._create(cbhelper, this.size, this.level, !!RNG.getUniformInt(0, 1), 0, this._width, 0, this._height);
         // close off edges
         for (let y = 0; y < this._width; y++) {
-            cbhelper(0, y, Feature.WALL);
-            cbhelper(this._width - 1, y, Feature.WALL);
+            cbhelper(0, y, Tile.wall);
+            cbhelper(this._width - 1, y, Tile.wall);
         }
         for (let x = 1; x < this._height - 1; x++) {
-            cbhelper(x, 0, Feature.WALL);
-            cbhelper(x, this._height - 1, Feature.WALL);
+            cbhelper(x, 0, Tile.wall);
+            cbhelper(x, this._height - 1, Tile.wall);
         }
     }
     _create(cb, s, l, axis, x0, x1, y0, y1) {
@@ -42,19 +47,19 @@ export default class WheatleyGen extends Dungeon {
                 let door1 = RNG.getUniformInt(0, 1);
                 let door2 = RNG.getUniformInt(0, 1);
                 for (let i = 0; i < l; i++) {
-                    cb(x + i, y0 - 1, door1 ? Feature.DOOR : Feature.FLOOR);
-                    cb(x + i, y1, door2 ? Feature.DOOR : Feature.FLOOR);
+                    cb(x + i, y0 - 1, door1 ? Tile.door : Tile.floor);
+                    cb(x + i, y1, door2 ? Tile.door : Tile.floor);
                 }
-                cb(x - 1, y0 - 1, Feature.WALL);
-                cb(x + l, y0 - 1, Feature.WALL);
-                cb(x - 1, y1, Feature.WALL);
-                cb(x + l, y1, Feature.WALL);
+                cb(x - 1, y0 - 1, Tile.wall);
+                cb(x + l, y0 - 1, Tile.wall);
+                cb(x - 1, y1, Tile.wall);
+                cb(x + l, y1, Tile.wall);
                 for (let y = y0; y < y1; y++) {
-                    cb(x - 1, y, Feature.WALL);
+                    cb(x - 1, y, Tile.wall);
                     for (let i = 0; i < l; i++) {
-                        cb(x + i, y, Feature.FLOOR);
+                        cb(x + i, y, Tile.floor);
                     }
-                    cb(x + l, y, Feature.WALL);
+                    cb(x + l, y, Tile.wall);
                 }
                 this._create(cb, s, l - 1, !axis, x0, x - 1, y0, y1);
                 this._create(cb, s, l - 1, !axis, x + l + 1, x1, y0, y1);
@@ -64,19 +69,19 @@ export default class WheatleyGen extends Dungeon {
                 let door1 = RNG.getUniformInt(0, 1);
                 let door2 = RNG.getUniformInt(0, 1);
                 for (let i = 0; i < l; i++) {
-                    cb(x0 - 1, y + i, door1 ? Feature.DOOR : Feature.FLOOR);
-                    cb(x1, y + i, door2 ? Feature.DOOR : Feature.FLOOR);
+                    cb(x0 - 1, y + i, door1 ? Tile.door : Tile.floor);
+                    cb(x1, y + i, door2 ? Tile.door : Tile.floor);
                 }
-                cb(x0 - 1, y - 1, Feature.WALL);
-                cb(x0 - 1, y + l, Feature.WALL);
-                cb(x1, y - 1, Feature.WALL);
-                cb(x1, y + l, Feature.WALL);
+                cb(x0 - 1, y - 1, Tile.wall);
+                cb(x0 - 1, y + l, Tile.wall);
+                cb(x1, y - 1, Tile.wall);
+                cb(x1, y + l, Tile.wall);
                 for (let x = x0; x < x1; x++) {
-                    cb(x, y - 1, Feature.WALL);
+                    cb(x, y - 1, Tile.wall);
                     for (let i = 0; i < l; i++) {
-                        cb(x, y + i, Feature.FLOOR);
+                        cb(x, y + i, Tile.floor);
                     }
-                    cb(x, y + l, Feature.WALL);
+                    cb(x, y + l, Tile.wall);
                 }
                 this._create(cb, s, l - 1, !axis, x0, x1, y0, y - 1);
                 this._create(cb, s, l - 1, !axis, x0, x1, y + l + 1, y1);
@@ -85,7 +90,7 @@ export default class WheatleyGen extends Dungeon {
         else { // rooms
             for (let x = x0; x < x1; x++) {
                 for (let y = y0; y < y1; y++) {
-                    cb(x, y, Feature.WALL);
+                    cb(x, y, Tile.wall);
                 }
             }
             if (RNG.getPercentage() < 10)
@@ -115,7 +120,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    y0 = newy0 - RNG.getUniformInt(0, s - 2);
+                    y0 = newy0; //- RNG.getUniformInt(0, s-2)
                 },
                 () => {
                     if (y1 == this._height - 1 || y0 >= y1)
@@ -136,7 +141,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    y1 = newy1 + RNG.getUniformInt(0, s - 2);
+                    y1 = newy1; //+ RNG.getUniformInt(0, s-2)
                 },
                 () => {
                     if (x0 == 1 || x0 >= x1)
@@ -148,7 +153,8 @@ export default class WheatleyGen extends Dungeon {
                         for (let x = 0; x < r.length; x++) {
                             for (let y = 0; y < r[x].length; y++) {
                                 if (r[x][y] != null) {
-                                    cb(x0 + x - 1, i + y - 1, r[x][y]);
+                                    let t = r[x][y];
+                                    cb(x0 + x - 1, i + y - 1, t.props.flip ? t.props.flip : t);
                                 }
                             }
                             if (x0 + x > newx0) {
@@ -157,7 +163,7 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    x0 = newx0 - RNG.getUniformInt(0, s - 2);
+                    x0 = newx0; //- RNG.getUniformInt(0, s-2)
                 },
                 () => {
                     if (x1 == this._height - 1 || x0 >= x1)
@@ -169,7 +175,8 @@ export default class WheatleyGen extends Dungeon {
                         for (let x = 0; x < r.length; x++) {
                             for (let y = 0; y < r[x].length; y++) {
                                 if (r[x][y] != null) {
-                                    cb(x1 - x, i + y - 1, r[x][y]);
+                                    let t = r[x][y];
+                                    cb(x1 - x, i + y - 1, t.props.flip ? t.props.flip : t);
                                 }
                             }
                             if (x1 - x < newx1) {
@@ -178,51 +185,66 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    x1 = newx1 + RNG.getUniformInt(0, s - 2);
+                    x1 = newx1; //+ RNG.getUniformInt(0, s-2)
                 }
             ];
             RNG.shuffle(sides).forEach(s => s());
         }
     }
     _mkroom(xmin, xmax, ymin, ymax) {
+        let w = xmin + RNG.getUniformInt(-1, 2);
+        let h = ymin;
+        if (xmax < xmin * 2) {
+            w = xmax;
+        }
+        if (ymax < ymin * 2) {
+            h = ymax;
+        }
+        let r = new Array(h);
+        for (let y = 0; y < h; y++) {
+            r[y] = new Array(w);
+            for (let x = 0; x < w; x++) {
+                r[y][x] = Tile.floor;
+            }
+        }
+        for (let y = 0; y < h; y++) {
+            r[y][0] = Tile.wall;
+            r[y][w - 1] = Tile.wall;
+        }
+        for (let x = 1; x < w - 1; x++) {
+            r[0][x] = Tile.wall;
+            r[h - 1][x] = Tile.wall;
+        }
         let rtype = RNG.getPercentage();
-        if (rtype <= 100) { // regular classroom
-            let w = xmin + RNG.getUniformInt(-1, 2);
-            let h = ymin;
-            if (xmax < xmin * 2) {
-                w = xmax;
+        if (rtype <= 100 && w > 5 && h > 7) { // regular classroom
+            // furniture
+            for (let x = 2; x < w - 2; x++) {
+                r[1][x] = Tile.hboard;
             }
-            if (ymax < ymin * 2) {
-                h = ymax;
-            }
-            let r = new Array(h);
-            for (let y = 0; y < h; y++) {
-                r[y] = new Array(w);
-                for (let x = 0; x < w; x++) {
-                    r[y][x] = Feature.FLOOR;
+            for (let x = RNG.getUniformInt(1, 2); x < w - 1; x += 2) {
+                for (let y = 3; y < h - 1; y += 1) {
+                    r[y][x] = Tile.desk;
                 }
             }
             // walls
-            for (let y = 0; y < h; y++) {
-                r[y][0] = Feature.WALL;
-                r[y][w - 1] = Feature.WALL;
+            // doors
+            if (RNG.getUniformInt(0, 1)) {
+                r[0][1] = Tile.door;
             }
-            for (let x = 1; x < w - 1; x++) {
-                r[0][x] = Feature.WALL;
-                r[h - 1][x] = Feature.WALL;
+            else {
+                r[0][w - 2] = Tile.door;
             }
-            r[0][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
             if (h == ymax && RNG.getUniformInt(0, 1)) {
-                r[h - 1][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
+                r[h - 1][RNG.getUniformInt(1, w - 2)] = Tile.door;
             }
             if (h > 3 && RNG.getPercentage() < 25) {
-                r[RNG.getUniformInt(1, h - 2)][0] = Feature.DOOR;
+                r[RNG.getUniformInt(1, h - 2)][0] = Tile.door;
             }
             if (h > 3 && RNG.getPercentage() < 25) {
-                r[RNG.getUniformInt(1, h - 2)][w - 1] = Feature.DOOR;
+                r[RNG.getUniformInt(1, h - 2)][w - 1] = Tile.door;
             }
-            return r;
         }
+        return r;
     }
 }
 //# sourceMappingURL=gen.js.map

@@ -3,6 +3,7 @@ export class Game {
         this.display = display;
         this.screens = screens;
         this.msgs = [];
+        this.madness = 0;
         window.addEventListener("keydown", e => {
             this.activeScreen.handle(e.keyCode);
             this.render();

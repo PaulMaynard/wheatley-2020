@@ -1,6 +1,6 @@
 import Dungeon from './lib/ROT/map/dungeon.js'
 import { RNG, KEYS, Display, Color } from './lib/ROT/index.js'
-import Tile, { tiles } from './tile.js'
+import Tile from './tile.js'
 import Screen from './screen.js'
 import Monster, { genMonster, Player } from './monster.js'
 import Point from './point.js'
@@ -10,7 +10,7 @@ import Speed from './lib/ROT/scheduler/speed.js'
 import { Game } from './game.js'
 import HelpScreen from './help.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
-import { Feature } from './gen.js'
+import { Gen } from './gen.js'
 
 
 export class Level {
@@ -22,7 +22,7 @@ export class Level {
     scheduler: Scheduler<Monster>
     constructor(public game: Game,
                 readonly width: number, readonly height: number, nmonsters: number,
-                generator: (w: number, h: number) => Dungeon ) {
+                generator: (w: number, h: number) => Gen ) {
         this.tiles = new Array(height)
         this.seen = new Array(height)
         for (let y = 0; y < height; y++) {
@@ -37,14 +37,8 @@ export class Level {
         })
 
         let gen = generator(width, height)
-        gen.create((x, y, type: Feature) => {
-            if (type == Feature.DOOR) {
-                this.tiles[y][x] = tiles.door
-            } else if (type == Feature.WALL) {
-                this.tiles[y][x] = tiles.wall
-            } else {
-                this.tiles[y][x] = tiles.floor
-            }
+        gen.create((x, y, t: Tile) => {
+                this.tiles[y][x] = t
         })
 
         while (true) {

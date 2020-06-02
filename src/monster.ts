@@ -46,7 +46,7 @@ export default class Monster extends Tile {
     pos: Point
     props: MonsterProps
     health: number
-    effects: [((m: Monster) => void), string][]
+    effects: [((m: Monster, l?: Level) => void), string][]
     constructor(name: string, tile: Tile, props: MonsterProps)
     constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps)
     constructor(name: string, ch: string, fg: string, props: MonsterProps)
@@ -74,7 +74,7 @@ export default class Monster extends Tile {
     }
     act(level: Level) {
         for (let [eff, _] of this.effects) {
-            eff(this)
+            eff(this, level)
         }
         if (!(this.props.inactive || this instanceof Player)) {
             let mv: Point
@@ -261,6 +261,11 @@ export class Player extends Monster {
         this.effects.push([(self) => {
             if (self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                 self.health++
+            }
+        }, ''])
+        this.effects.push([(self, l) => {
+            if (RNG.getPercentage() <= 1) {
+                l.game.madness++
             }
         }, ''])
     }
