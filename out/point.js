@@ -23,4 +23,5 @@ export default class Point {
         return Math.max(Math.abs(this.x), Math.abs(this.y));
     }
 }
+Point.origin = new Point(0, 0);
 //# sourceMappingURL=point.js.map

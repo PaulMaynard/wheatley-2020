@@ -4,6 +4,7 @@
         "module": "ESNext",
         "outDir": "out",
         "sourceMap": true,
+        "strict": true,
     },
     "include": ["src/*"]
 }

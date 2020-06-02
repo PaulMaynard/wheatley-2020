@@ -3,8 +3,9 @@ import Point from './point.js'
 import { RNG, Util } from './lib/ROT/index.js'
 import { Level } from './level.js'
 import { Die, die } from './dice.js'
+import Item from './item.js'
 
-enum Damage {
+export enum Damage {
     PHYSICAL = 'physical',
     POISON = 'poison',
     WEED = 'weed',
@@ -21,7 +22,7 @@ enum Damage {
     COVID = 'coronavirus',
     LOGIC = 'logic'
 }
-let deaths = {
+let deaths: {[d in Damage]?: [string, string]} = {
     [Damage.LECTURE]: [' have failed', ' has failed'],
     [Damage.MATH]: [' are left as an exercise for the reader', ' is left as an exercise for the reader'],
     [Damage.RECURSION]: ['r stack has overflowed', "'s stack has overflowed"],
@@ -33,23 +34,26 @@ let deaths = {
     [Damage.LOGIC]: [' are destroyed by facts and logic', ' is destroyed by facts and logic'],
 }
 
+export type Attack = [Die, (string | [string, string])[], Damage]
+
 interface MonsterProps extends TileProps {
     speed?: number
     inactive?: boolean
     friendly?: boolean
-    sight?: number
     maxhealth?: number
-    weapons?: [Die, string[], Damage][]
+    defsight?: number
+    attacks?: Attack[]
     resistance?: {[d in Damage]?: number}
 }
 
-export default class Monster extends Tile {
+class Monster extends Tile {
     name: string
     pos: Point
     props: MonsterProps
     health: number
+    sight: number
     active: boolean
-    effects: [((m: Monster, l?: Level) => void), string][]
+    effects: [((m: Monster, l: Level) => void), string][]
     constructor(name: string, tile: Tile, props: MonsterProps)
     constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps)
     constructor(name: string, ch: string, fg: string, props: MonsterProps)
@@ -66,12 +70,15 @@ export default class Monster extends Tile {
             super(ch, fg, '', bg)
         }
         this.name = name
-        this.health = this.props.maxhealth = null ? 1 : this.props.maxhealth
+        this.active = false
+        this.effects = []
+        this.props = super.props
+        this.health = this.props.maxhealth == null ? 1 : this.props.maxhealth
         if (this.props.impassable == null) {
             this.props.impassable = true
         }
-        this.active = false
-        this.effects = []
+        this.sight = this.props.defsight || 1
+        this.pos = Point.origin
     }
     getSpeed(): number {
         return this.props.speed || 100
@@ -81,17 +88,17 @@ export default class Monster extends Tile {
             eff(this, level)
         }
         if (!(this.props.inactive || this instanceof Player)) {
-            let mv: Point
+            let mv: Point = Point.origin
             if (!this.props.friendly) {
-                let ppos: Point = null
-                level.fov.compute(this.pos.x, this.pos.y, this.props.sight, (x, y, v) => {
+                let ppos: Point | null = null
+                level.fov.compute(this.pos.x, this.pos.y, this.sight, (x, y, v) => {
                     let p = new Point(x, y)
                     if (level.in(p) && level.tile(p) == player) {
                         ppos = p
                     }
                 })
-                if (ppos) {
-                    mv = ppos.minus(this.pos)
+                if (ppos != null) {
+                    mv = (ppos as Point).minus(this.pos) // type hackery because TS cant see inside the callback
                     if (mv.x > 0) {
                         mv.x = 1
                     } else if (mv.x < 0) {
@@ -121,7 +128,7 @@ export default class Monster extends Tile {
             this.pos = pos
         } else if (tile.props.open) {
             level.tiles[pos.y][pos.x] = tile.props.open
-        } else if (tile instanceof Monster && this.props.weapons && tile.health) {
+        } else if (tile instanceof Monster && this.props.attacks && tile.health) {
             let log = this.hit(tile)
             level.seen[pos.y][pos.x]
             if (level.seen[pos.y][pos.x] > 0) {
@@ -129,46 +136,47 @@ export default class Monster extends Tile {
             }
         }
     }
+    getAttack(): Attack {
+        if (this.props.attacks && this.props.attacks.length > 0) {
+            return RNG.getItem(this.props.attacks)
+        }
+        throw new Error('no attacks!')
+    }
     hit(mon: Monster): string[] {
-        let weapon = RNG.getItem(this.props.weapons)
+        let weapon = this.getAttack()
         let dam = weapon[0].roll()
         let res = 0
-        if (mon.props.resistance && weapon[2] in mon.props.resistance) {
-            res = mon.props.resistance[weapon[2]]
+        if (mon.props.resistance && mon.props.resistance[weapon[2]]) {
+            res = mon.props.resistance[weapon[2]] as number // goddamn TS cant see the assertion....
         }
         let adj = dam - res
         if ((dam > 0 && adj > 0) || dam < 0 && adj < 0) {
             mon.health -= dam
         }
         let msgs: string[] = []
+        let weap = RNG.getItem(weapon[1])
+        if (typeof weap == 'string') {
+            weap = [weap, '']
+        }
         if (this instanceof Player) {
-            msgs.push('You ' + RNG.getItem(weapon[1]) + ' the ' + mon.name +
-                ' for ' + dam + ' damage')
+            msgs.push('You ' + weap[0] + ' the ' + mon.name + weap[1])
         } else if (mon instanceof Player) {
-            msgs.push('The ' + this.name + ' ' + RNG.getItem(weapon[1]) +
-                ' you for ' + dam + ' damage')
+            msgs.push('The ' + this.name + ' ' + weap[0] + ' you' + weap[1])
         } else {
-            msgs.push('The ' + this.name + ' ' + RNG.getItem(weapon[1]) + ' the ' + mon.name +
-                ' for ' + dam + ' damage')
+            msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
-            if (weapon[2] in deaths) {
-                if (mon instanceof Player) {
-                    msgs.push('You' + deaths[weapon[2]][0] + '!')
-                } else {
-                    msgs.push('The ' + mon.name + deaths[weapon[2]][1] + '!')
-                }
+            let death = deaths[weapon[2]] || [' die', 'dies']
+            if (mon instanceof Player) {
+                msgs.push('You' + death[0] + '!')
             } else {
-                if (mon instanceof Player) {
-                    msgs.push('You die!')
-                } else {
-                    msgs.push('The ' + mon.name + ' dies!')
+                msgs.push('The ' + mon.name + death[1] + '!')
                 }
-            }
         }
         return msgs
     }
 }
+export default Monster
 type MonSpec = [number, string, string, string, MonsterProps]
 
 export function mkMonster(m: MonSpec): Monster {
@@ -176,75 +184,99 @@ export function mkMonster(m: MonSpec): Monster {
     return new Monster(...as)
 }
 
-export let monsters: {[n: string]: MonSpec} = {
-    roach: [.1, 'roach', 'r', 'brown', {
+export var monsters: MonSpec[] = []
+namespace Monster {
+    export let roach: MonSpec = [.1, 'roach', 'r', 'brown', {
         desc: 'a monstrous roach',
-        sight: 5,
+        defsight: 5,
         maxhealth: 5,
-        weapons: [[die('1d6'), ['disgusts'], Damage.GROSS]],
-    }],
-    bee: [.1, 'bee', 'B', 'yellow', {
+        attacks: [[die('1d6'), [
+            'disgusts',
+            ['grosses', ' out']
+        ], Damage.GROSS]],
+    }]
+    monsters.push(roach)
+    export let bee: MonSpec = [.1, 'bee', 'B', 'yellow', {
         desc: 'a friendly bee',
-        sight: 5,
+        defsight: 5,
         friendly: true,
         maxhealth: 2,
-        weapons: [[die('1d4'), ['stings'], Damage.POISON]],
+        attacks: [[die('1d4'), [
+            'stings',
+        ], Damage.POISON]],
         resistance: {
             [Damage.WEED]: -2
         }
-    }],
-    wasp: [.1, 'wasp', 'w', 'yellow', {
+    }]
+    monsters.push(bee)
+    export let wasp: MonSpec = [.1, 'wasp', 'w', 'yellow', {
         desc: 'an angry wasp',
-        sight: 5,
+        defsight: 5,
         speed: 200,
         maxhealth: 2,
-        weapons: [[die('1d4'), ['stings'], Damage.POISON]],
+        attacks: [[die('1d4'), ['stings'], Damage.POISON]],
         resistance: {
             [Damage.WEED]: -2
         }
-    }],
-    prof: [.2, 'professor', 'P', 'lightblue', {
+    }]
+    monsters.push(wasp)
+    export let prof: MonSpec = [.2, 'professor', 'P', 'lightblue', {
         desc: 'a wandering professor',
-        sight: 9,
+        defsight: 9,
         maxhealth: 10,
-        weapons: [[die('1d8'), ['lectures', 'confuses', 'harshly grades', 'curves'], Damage.LECTURE]],
+        attacks: [[die('1d8'), [
+            'lectures', 'confuses', 'harshly grades',
+            ['refuses to give', ' an extension']
+        ], Damage.LECTURE]],
         resistance: {
             [Damage.LECTURE]: 2
         }
-    }],
-    mprof: [.1, 'math professor', 'P', 'red', {
+    }]
+    monsters.push(prof)
+    export let mprof: MonSpec = [.1, 'math professor', 'P', 'red', {
         desc: 'a math professor',
-        sight: 9,
+        defsight: 9,
         maxhealth: 10,
-        weapons: [
-            [die('1d8'), ['disproves', 'measures', 'calculates', 'integrates', 'divides'], Damage.MATH],
-            [die('1d8'), ['recurses', 'performs induction on'], Damage.RECURSION]
+        attacks: [
+            [die('1d8'), [
+                'disproves', 'measures', 'calculates', 'integrates',
+                ['divides', ' by zero']
+            ], Damage.MATH],
+            [die('1d8'), [
+                'performs induction on',
+                ['reduces', ' to a base case']
+            ], Damage.RECURSION]
         ],
         resistance: {
             [Damage.LECTURE]: 2,
             [Damage.RECURSION]: 3
         }
-    }],
-    preacher: [.1, 'preacher', 'P', 'yellow', {
+    }]
+    monsters.push(mprof)
+    export let preacher: MonSpec = [.1, 'preacher', 'P', 'yellow', {
         desc: 'a street preacher',
-        sight: 12,
+        defsight: 12,
         maxhealth: 10,
-        weapons: [[die('1d6'), ['hurls brimstone at', 'devolves', 'berates', 'damns', 'debates'], Damage.RELIGION]],
+        attacks: [[die('1d6'), [
+            'hurls brimstone at', 'devolves', 'berates', 'damns', 'debates',
+        ], Damage.RELIGION]],
         resistance: {
             [Damage.LOGIC]: 4
         }
-    }],
-    student: [.2, 'student', '@', 'green', {
+    }]
+    monsters.push(preacher)
+    export let student: MonSpec = [.2, 'student', '@', 'green', {
         desc: 'a lost student',
         friendly: true,
-        sight: 10,
+        defsight: 10,
         maxhealth: 6,
-        weapons: [[die('1d12'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
+        attacks: [[die('1d12'), ['coughs on', 'sneezes at', 'breathes on'], Damage.COVID]],
         resistance: {
             [Damage.LECTURE]: -2,
             [Damage.WEED]: 2
         }
     }]
+    monsters.push(student)
 }
 let weight = 0
 for (let n in monsters) {
@@ -260,20 +292,25 @@ export function genMonster() {
             return mkMonster(s)
         }
     }
+    throw Error('impossible')
 }
 
 interface PlayerProps extends MonsterProps {
     maxmana: number
+    maxhealth: number
 }
 
 export class Player extends Monster {
     props: PlayerProps
     mana: number
+    weapon: Item | undefined
+    // items: Item[]
     constructor(t: Tile, props: PlayerProps) {
         super('player', t, props)
+        this.props = props
         this.mana = this.props.maxmana
         this.effects.push([(self) => {
-            if (self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
+            if (self.props.maxhealth && self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                 self.health++
             }
         }, ''])
@@ -283,16 +320,23 @@ export class Player extends Monster {
             }
         }, ''])
     }
+    getAttack(): Attack {
+        if (this.weapon && this.weapon.props.attack) {
+            return this.weapon.props.attack
+        } else {
+            return super.getAttack()
+        }
+    }
 }
 export let player = new Player(
     new Tile('@', 'goldenrod'),
     {
         desc: 'yourself',
         speed: 100,
-        sight: 10,
+        defsight: 10,
         maxhealth: 20,
         maxmana: 10,
-        weapons: [
+        attacks: [
             [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
         ]
     }

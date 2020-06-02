@@ -32,7 +32,7 @@ let display = new Display({
     fontSize: 18,
 })
 
-document.body.appendChild(display.getContainer())
+document.body.appendChild(display.getContainer() || document.createTextNode("Could not create display"))
 
 let game = new Game(display, [
     new MenuScreen([
@@ -41,7 +41,7 @@ let game = new Game(display, [
         "+-----------------------------------+"
     ], [
         ["Play!", () => {
-            player.health = player.props.maxhealth
+            player.health = player.props.maxhealth || 1
             game.push(new LevelScreen(player, new Level(game, 150, 150, 50,
                 (w, h) => new WheatleyGen(w, h, 7, 6)
             )))

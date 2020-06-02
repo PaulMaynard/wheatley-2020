@@ -1,6 +1,6 @@
 import { RNG } from "./lib/ROT/index.js";
 import Tile from "./tile.js";
-import { monsters, mkMonster } from "./monster.js";
+import Monster, { mkMonster } from "./monster.js";
 export var Feature;
 (function (Feature) {
     Feature[Feature["FLOOR"] = 0] = "FLOOR";
@@ -23,7 +23,7 @@ export default class WheatleyGen extends Gen {
         this.size = size;
     }
     create(cb) {
-        let cbhelper = (x, y, v, m) => {
+        let cbhelper = (x, y, v, m, i) => {
             if (!(x < 0 || x >= this._width || y < 0 || y >= this._height)) {
                 cb(x, y, v, m);
             }
@@ -205,7 +205,7 @@ export default class WheatleyGen extends Gen {
         for (let y = 0; y < h; y++) {
             r[y] = new Array(w);
             for (let x = 0; x < w; x++) {
-                r[y][x] = [Tile.floor, undefined];
+                r[y][x] = [Tile.floor, undefined, undefined];
             }
         }
         for (let y = 0; y < h; y++) {
@@ -225,13 +225,13 @@ export default class WheatleyGen extends Gen {
             }
             let students = RNG.getPercentage() <= 10;
             if (students) {
-                r[1][w >> 1][1] = mkMonster(RNG.getItem([monsters.prof, monsters.mprof]));
+                r[1][w >> 1][1] = mkMonster(RNG.getItem([Monster.prof, Monster.mprof]));
             }
             for (let x = RNG.getUniformInt(1, 2); x < w - 1; x += 2) {
                 for (let y = 3; y < h - 1; y += 1) {
                     r[y][x][0] = Tile.desk;
                     if (students && RNG.getPercentage() <= 40) {
-                        r[y][x][1] = mkMonster(monsters.student);
+                        r[y][x][1] = mkMonster(Monster.student);
                     }
                 }
             }
