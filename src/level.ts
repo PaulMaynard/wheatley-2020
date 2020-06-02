@@ -21,7 +21,7 @@ export class Level {
     scheduler: Scheduler<Monster>
     constructor(public game: Game,
                 readonly width: number, readonly height: number, nmonsters: number,
-                generator: { new(w: number, h: number): Dungeon }) {
+                generator: (w: number, h: number) => Dungeon ) {
         this.tiles = new Array(height)
         this.seen = new Array(height)
         for (let y = 0; y < height; y++) {
@@ -35,7 +35,7 @@ export class Level {
             return this.in(p) && !this.tile(p).props.opaque
         })
 
-        let gen = new generator(width, height)
+        let gen = generator(width, height)
         gen.create((x, y, type) => {
             if (type == 1) {
                 this.tiles[y][x] = tiles.wall
@@ -216,13 +216,11 @@ export class LevelScreen extends Screen {
         // }
         let m: Monster
         while (((m = this.level.scheduler.next()) != this.player)) {
-            if (this.level.seen[m.pos.y][m.pos.x] > 0) {
-                (() => {})()
-            }
             if (m.health > 0) {
                 m.act(this.level)
             }
         }
+        this.player.act(this.level)
         if (this.player.health <= 0) {
             this.game.pop()
         }

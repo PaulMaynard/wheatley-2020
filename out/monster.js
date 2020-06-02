@@ -51,6 +51,9 @@ export default class Monster extends Tile {
         return this.props.speed || 100;
     }
     act(level) {
+        for (let [eff, _] of this.effects) {
+            eff(this);
+        }
         if (!(this.props.inactive || this instanceof Player)) {
             let mv;
             if (!this.props.friendly) {
@@ -234,10 +237,11 @@ export class Player extends Monster {
         super('player', t, props);
         this.mana = this.props.maxmana;
         this.effects.push([(self) => {
-                if (self.health < self.props.maxhealth && RNG.getPercentage() < 10) {
+                if (self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                     self.health++;
                 }
             }, '']);
+        console.log(this.effects);
     }
 }
 export let player = new Player(new Tile('@', 'goldenrod'), {
