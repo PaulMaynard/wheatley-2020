@@ -263,7 +263,6 @@ export class Player extends Monster {
                 self.health++
             }
         }, ''])
-        console.log(this.effects)
     }
 }
 export let player = new Player(

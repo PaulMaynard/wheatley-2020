@@ -10,6 +10,7 @@ import Speed from './lib/ROT/scheduler/speed.js'
 import { Game } from './game.js'
 import HelpScreen from './help.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
+import { Feature } from './gen.js'
 
 
 export class Level {
@@ -36,7 +37,7 @@ export class Level {
         })
 
         let gen = generator(width, height)
-        gen.create((x, y, type) => {
+        gen.create((x, y, type: Feature) => {
             if (type == 1) {
                 this.tiles[y][x] = tiles.wall
             } else {
