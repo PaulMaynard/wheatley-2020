@@ -18,6 +18,15 @@ export default class WheatleyGen extends Dungeon {
     }
     create(cb) {
         this._create(cb, this.size, this.level, !!RNG.getUniformInt(0, 1), 0, this._width, 0, this._height);
+        // close off edges
+        for (let y = 0; y < this._width; y++) {
+            cb(0, y, Feature.WALL);
+            cb(this._width - 1, y, Feature.WALL);
+        }
+        for (let x = 1; x < this._height - 1; x++) {
+            cb(x, 0, Feature.WALL);
+            cb(x, this._height - 1, Feature.WALL);
+        }
     }
     _create(cb, s, l, axis, x0, x1, y0, y1) {
         if (x1 < x0 || y1 < y0)
@@ -31,6 +40,10 @@ export default class WheatleyGen extends Dungeon {
                     cb(x + i, y0 - 1, door1 ? Feature.DOOR : Feature.FLOOR);
                     cb(x + i, y1, door2 ? Feature.DOOR : Feature.FLOOR);
                 }
+                cb(x - 1, y0 - 1, Feature.WALL);
+                cb(x + l, y0 - 1, Feature.WALL);
+                cb(x - 1, y1, Feature.WALL);
+                cb(x + l, y1, Feature.WALL);
                 for (let y = y0; y < y1; y++) {
                     cb(x - 1, y, Feature.WALL);
                     for (let i = 0; i < l; i++) {
@@ -49,6 +62,10 @@ export default class WheatleyGen extends Dungeon {
                     cb(x0 - 1, y + i, door1 ? Feature.DOOR : Feature.FLOOR);
                     cb(x1, y + i, door2 ? Feature.DOOR : Feature.FLOOR);
                 }
+                cb(x0 - 1, y - 1, Feature.WALL);
+                cb(x0 - 1, y + l, Feature.WALL);
+                cb(x1, y - 1, Feature.WALL);
+                cb(x1, y + l, Feature.WALL);
                 for (let x = x0; x < x1; x++) {
                     cb(x, y - 1, Feature.WALL);
                     for (let i = 0; i < l; i++) {
@@ -71,22 +88,94 @@ export default class WheatleyGen extends Dungeon {
             y0 = y0 || 1;
             x1 = Math.min(x1, this._width - 1);
             y1 = Math.min(y1, this._height - 1);
-            let i = x0;
-            let maxh = 0;
-            while (i < x1) {
-                let r = this._mkroom(Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), x1 - i + 2, Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), y1 - y0 + 2);
-                for (let y = 0; y < r.length; y++) {
-                    for (let x = 0; x < r[y].length; x++) {
-                        if (r[y][x] != null) {
-                            cb(i + x - 1, y0 + y - 1, r[y][x]);
+            // top
+            let sides = [
+                () => {
+                    if (y0 == 1 || y0 == y1)
+                        return;
+                    let i = x0;
+                    let newy0 = y0;
+                    while (i < x1) {
+                        let r = this._mkroom(Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), x1 - i + 2, Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), y1 - y0 + 2);
+                        for (let y = 0; y < r.length; y++) {
+                            for (let x = 0; x < r[y].length; x++) {
+                                if (r[y][x] != null) {
+                                    cb(i + x - 1, y0 + y - 1, r[y][x]);
+                                }
+                            }
+                            if (y0 + y > newy0) {
+                                newy0 = y0 + y;
+                            }
                         }
+                        i += r[0].length - 1;
                     }
-                    if (y > maxh) {
-                        maxh = y;
+                    y0 = newy0;
+                },
+                () => {
+                    if (y1 == this._height - 1 || y0 == y1)
+                        return;
+                    let i = x0;
+                    let newy1 = y1;
+                    while (i < x1) {
+                        let r = this._mkroom(Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), x1 - i + 2, Math.min(Math.max(s, ((x1 - x0) / 8) | 0, ((y1 - y0) / 4) | 0), x1 - x0), y1 - y0 + 2);
+                        for (let y = 0; y < r.length; y++) {
+                            for (let x = 0; x < r[y].length; x++) {
+                                if (r[y][x] != null) {
+                                    cb(i + x - 1, y1 - y, r[y][x]);
+                                }
+                            }
+                            if (y1 - y > newy1) {
+                                newy1 = y1 - y;
+                            }
+                        }
+                        i += r[0].length - 1;
                     }
+                    y1 = newy1;
+                },
+                () => {
+                    if (x0 == 1 || x0 == x1)
+                        return;
+                    let i = y0;
+                    let newx0 = x0;
+                    while (i < y1) {
+                        let r = this._mkroom(Math.min(Math.max(s, ((y1 - y0) / 8) | 0, ((x1 - x0) / 4) | 0), y1 - y0), y1 - i + 2, Math.min(Math.max(s, ((y1 - y0) / 8) | 0, ((x1 - x0) / 4) | 0), y1 - y0), x1 - x0 + 2);
+                        for (let x = 0; x < r.length; x++) {
+                            for (let y = 0; y < r[x].length; y++) {
+                                if (r[x][y] != null) {
+                                    cb(x0 + x - 1, i + y - 1, r[x][y]);
+                                }
+                            }
+                            if (x0 + x > newx0) {
+                                newx0 = x0 + x;
+                            }
+                        }
+                        i += r[0].length - 1;
+                    }
+                    x0 = newx0;
+                },
+                () => {
+                    if (x1 == this._height - 1 || x0 == x1)
+                        return;
+                    let i = y0;
+                    let newx1 = x1;
+                    while (i < y1) {
+                        let r = this._mkroom(Math.min(Math.max(s, ((y1 - y0) / 8) | 0, ((x1 - x0) / 4) | 0), y1 - y0), y1 - i + 2, Math.min(Math.max(s, ((y1 - y0) / 8) | 0, ((x1 - x0) / 4) | 0), y1 - y0), x1 - x0 + 2);
+                        for (let x = 0; x < r.length; x++) {
+                            for (let y = 0; y < r[x].length; y++) {
+                                if (r[x][y] != null) {
+                                    cb(x1 - x, i + y - 1, r[x][y]);
+                                }
+                            }
+                            if (x1 - x > newx1) {
+                                newx1 = x1 - x;
+                            }
+                        }
+                        i += r[0].length - 1;
+                    }
+                    x1 = newx1;
                 }
-                i += r[0].length;
-            }
+            ];
+            RNG.shuffle(sides).forEach(s => s());
         }
     }
     _mkroom(xmin, xmax, ymin, ymax) {
@@ -100,7 +189,6 @@ export default class WheatleyGen extends Dungeon {
             if (ymax < ymin * 3) {
                 h = ymax;
             }
-            console.log(h);
             let r = new Array(h);
             for (let y = 0; y < h; y++) {
                 r[y] = new Array(w);
@@ -117,9 +205,9 @@ export default class WheatleyGen extends Dungeon {
                 r[0][x] = Feature.WALL;
                 r[h - 1][x] = Feature.WALL;
             }
-            r[0][RNG.getUniformInt(0, w - 1)] = Feature.DOOR;
+            r[0][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
             if (h == ymax) {
-                r[h - 1][RNG.getUniformInt(0, w - 1)] = Feature.DOOR;
+                r[h - 1][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
             }
             return r;
         }
