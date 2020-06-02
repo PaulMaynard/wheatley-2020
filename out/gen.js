@@ -17,15 +17,20 @@ export default class WheatleyGen extends Dungeon {
         this.size = size;
     }
     create(cb) {
-        this._create(cb, this.size, this.level, !!RNG.getUniformInt(0, 1), 0, this._width, 0, this._height);
+        let cbhelper = (x, y, v) => {
+            if (!(x < 0 || x >= this._width || y < 0 || y >= this._height)) {
+                cb(x, y, v);
+            }
+        };
+        this._create(cbhelper, this.size, this.level, !!RNG.getUniformInt(0, 1), 0, this._width, 0, this._height);
         // close off edges
         for (let y = 0; y < this._width; y++) {
-            cb(0, y, Feature.WALL);
-            cb(this._width - 1, y, Feature.WALL);
+            cbhelper(0, y, Feature.WALL);
+            cbhelper(this._width - 1, y, Feature.WALL);
         }
         for (let x = 1; x < this._height - 1; x++) {
-            cb(x, 0, Feature.WALL);
-            cb(x, this._height - 1, Feature.WALL);
+            cbhelper(x, 0, Feature.WALL);
+            cbhelper(x, this._height - 1, Feature.WALL);
         }
     }
     _create(cb, s, l, axis, x0, x1, y0, y1) {
@@ -211,7 +216,6 @@ export default class WheatleyGen extends Dungeon {
                 r[h - 1][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
             }
             if (h > 3 && RNG.getPercentage() < 25) {
-                console.log(h, r);
                 r[RNG.getUniformInt(1, h - 2)][0] = Feature.DOOR;
             }
             if (h > 3 && RNG.getPercentage() < 25) {
