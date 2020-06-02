@@ -83,7 +83,8 @@ export default class WheatleyGen extends Dungeon {
                     cb(x, y, Feature.WALL);
                 }
             }
-            console.log(s);
+            if (RNG.getPercentage() < 10)
+                return; // empty block
             x0 = x0 || 1;
             y0 = y0 || 1;
             x1 = Math.min(x1, this._width - 1);
@@ -91,7 +92,7 @@ export default class WheatleyGen extends Dungeon {
             // top
             let sides = [
                 () => {
-                    if (y0 == 1 || y0 == y1)
+                    if (y0 == 1 || y0 >= y1)
                         return;
                     let i = x0;
                     let newy0 = y0;
@@ -109,10 +110,10 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    y0 = newy0;
+                    y0 = newy0 - RNG.getUniformInt(0, s - 2);
                 },
                 () => {
-                    if (y1 == this._height - 1 || y0 == y1)
+                    if (y1 == this._height - 1 || y0 >= y1)
                         return;
                     let i = x0;
                     let newy1 = y1;
@@ -124,16 +125,16 @@ export default class WheatleyGen extends Dungeon {
                                     cb(i + x - 1, y1 - y, r[y][x]);
                                 }
                             }
-                            if (y1 - y > newy1) {
+                            if (y1 - y < newy1) {
                                 newy1 = y1 - y;
                             }
                         }
                         i += r[0].length - 1;
                     }
-                    y1 = newy1;
+                    y1 = newy1 + RNG.getUniformInt(0, s - 2);
                 },
                 () => {
-                    if (x0 == 1 || x0 == x1)
+                    if (x0 == 1 || x0 >= x1)
                         return;
                     let i = y0;
                     let newx0 = x0;
@@ -151,10 +152,10 @@ export default class WheatleyGen extends Dungeon {
                         }
                         i += r[0].length - 1;
                     }
-                    x0 = newx0;
+                    x0 = newx0 - RNG.getUniformInt(0, s - 2);
                 },
                 () => {
-                    if (x1 == this._height - 1 || x0 == x1)
+                    if (x1 == this._height - 1 || x0 >= x1)
                         return;
                     let i = y0;
                     let newx1 = x1;
@@ -166,13 +167,13 @@ export default class WheatleyGen extends Dungeon {
                                     cb(x1 - x, i + y - 1, r[x][y]);
                                 }
                             }
-                            if (x1 - x > newx1) {
+                            if (x1 - x < newx1) {
                                 newx1 = x1 - x;
                             }
                         }
                         i += r[0].length - 1;
                     }
-                    x1 = newx1;
+                    x1 = newx1 + RNG.getUniformInt(0, s - 2);
                 }
             ];
             RNG.shuffle(sides).forEach(s => s());
@@ -183,10 +184,10 @@ export default class WheatleyGen extends Dungeon {
         if (rtype <= 100) { // regular classroom
             let w = xmin + RNG.getUniformInt(-1, 2);
             let h = ymin;
-            if (xmax < xmin * 3) {
+            if (xmax < xmin * 2) {
                 w = xmax;
             }
-            if (ymax < ymin * 3) {
+            if (ymax < ymin * 2) {
                 h = ymax;
             }
             let r = new Array(h);
@@ -206,8 +207,15 @@ export default class WheatleyGen extends Dungeon {
                 r[h - 1][x] = Feature.WALL;
             }
             r[0][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
-            if (h == ymax) {
+            if (h == ymax && RNG.getUniformInt(0, 1)) {
                 r[h - 1][RNG.getUniformInt(1, w - 2)] = Feature.DOOR;
+            }
+            if (h > 3 && RNG.getPercentage() < 25) {
+                console.log(h, r);
+                r[RNG.getUniformInt(1, h - 2)][0] = Feature.DOOR;
+            }
+            if (h > 3 && RNG.getPercentage() < 25) {
+                r[RNG.getUniformInt(1, h - 2)][w - 1] = Feature.DOOR;
             }
             return r;
         }
