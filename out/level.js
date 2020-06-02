@@ -118,19 +118,22 @@ export class LevelScreen extends Screen {
                     else if (vis > 0) {
                         let tile = this.level.tile(po);
                         let col = Color.fromString(tile.fg);
-                        col = Color.interpolate(col, Color.fromString('gray'), vis * .05);
+                        col = Color.interpolate(col, Color.fromString('gray'), vis * .03);
                         tile.draw(display, p, Color.toHex(col));
                     }
                 }
             }
         }
-        // this.level.monsters.forEach(mon => {
-        //     if (this.level.seen[mon.pos.y][mon.pos.x]) {
-        //         mon.draw(display, mon.pos.minus(offset))
-        //     }
-        // })
-        display.drawText(0, 0, grade(this.player.health, this.player.props.maxhealth) + ' (' +
+        // render player stats
+        display.drawText(dim.x - 19, 1, 'Grade: ' + grade(this.player.health, this.player.props.maxhealth) + ' (' +
             this.player.health + '/' + this.player.props.maxhealth + ')');
+        display.drawText(dim.x - 19, 2, 'Will to live: ' + this.player.mana + '/' + this.player.props.maxmana);
+        let i = 4;
+        for (let [_, name] of this.player.effects) {
+            if (name) {
+                display.drawText(dim.x - 19, i++, name);
+            }
+        }
     }
     handle(key) {
         let [x, y] = this.player.pos;

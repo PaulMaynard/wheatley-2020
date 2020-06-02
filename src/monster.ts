@@ -14,16 +14,21 @@ enum Damage {
     MATH = 'math',
     RECURSION = 'recursion',
     LITERATURE = 'literature',
-    BIGOTRY = 'bigotry',
+    RELIGION = 'religion',
+    ANIME = 'anime',
     CRINGE = 'cringe',
-    COVID = 'coronavirus'
+    COVID = 'coronavirus',
+    LOGIC = 'logic'
 }
 let deaths = {
     [Damage.LECTURE]: ['have failed', 'has failed'],
     [Damage.MATH]: ['are left as an exercise for the reader', 'is left as an exercise for the reader'],
     [Damage.RECURSION]: ['are sent into an infinite loop', 'is sent into an infinite loop'],
+    [Damage.RELIGION]: ['are condemned to hell', 'is condemned to hell'],
+    [Damage.ANIME]: ['are sent to the shadow realm!!', 'is sent to the shadow realm!!'],
     [Damage.CRINGE]: ['loose subscriber', 'looses subscriber'],
     [Damage.COVID]: ['die of Coronavirus', 'dies of Coronavirus'],
+    [Damage.LOGIC]: ['are destroyed by facts and logic', 'is destroyed by facts and logic'],
 }
 
 interface MonsterProps extends TileProps {
@@ -41,35 +46,28 @@ export default class Monster extends Tile {
     pos: Point
     props: MonsterProps
     health: number
-    constructor(name: string, tile: Tile, props?: MonsterProps)
-    constructor(name: string, ch: string, fg: string, bg: string, props?: MonsterProps)
-    constructor(name: string, ch: string, fg: string, props?: MonsterProps)
+    effects: [((m: Monster) => void), string][]
+    constructor(name: string, tile: Tile, props: MonsterProps)
+    constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps)
+    constructor(name: string, ch: string, fg: string, props: MonsterProps)
     constructor(
         name: string,
-        ch: string | Tile, fg?: string | MonsterProps, bg?: string | MonsterProps,
-        props?: MonsterProps
+        ch: any, fg?: any, bg?: any,
+        props?: any
     ) {
-        if (typeof fg != 'string') {
-            props = fg
-            fg = ''
+        if (ch instanceof Tile) { // constructor 1
+            super(ch.ch, ch.fg, ch.bg, fg)
+        } else if (typeof bg == 'string') { //constructor 2
+            super(ch, fg, bg, props)
+        } else { // constructor 3
+            super(ch, fg, '', bg)
         }
-        if (typeof bg != 'string') {
-            props = bg
-            bg = ''
-        }
-        if (typeof ch != 'string') {
-            let tile = ch
-            ch = tile.ch
-            fg = tile.fg
-            bg = tile.bg
-        }
-        if (!props) {
-            props = {desc: ''}
-        }
-        if (props.impassable == null) props.impassable = true
-        super(ch, fg, bg, props)
         this.name = name
-        this.health = props.maxhealth = null ? 1 : props.maxhealth
+        this.health = this.props.maxhealth = null ? 1 : this.props.maxhealth
+        if (this.props.impassable == null) {
+            this.props.impassable = true
+        }
+        this.effects = []
     }
     getSpeed(): number {
         return this.props.speed || 100
@@ -214,6 +212,15 @@ let mons: [number, [string, string, string, MonsterProps]][] = [
             [Damage.RECURSION]: 3
         }
     }]],
+    [.1, ['preacher', 'P', 'yellow', {
+        desc: 'a street preacher',
+        sight: 12,
+        maxhealth: 10,
+        weapons: [[die('1d6'), ['hurls brimstone at', 'devolves', 'berates', 'damns', 'debates'], Damage.RELIGION]],
+        resistance: {
+            [Damage.LOGIC]: 4
+        }
+    }]],
     [.2, ['student', '@', 'green', {
         desc: 'a lost student',
         friendly: true,
@@ -238,17 +245,31 @@ export function genMonster() {
     }
 }
 
-class Player extends Monster {
+interface PlayerProps extends MonsterProps {
+    maxmana: number
+}
 
+export class Player extends Monster {
+    props: PlayerProps
+    mana: number
+    constructor(t: Tile, props: PlayerProps) {
+        super('player', t, props)
+        this.mana = this.props.maxmana
+        this.effects.push([(self) => {
+            if (self.health < self.props.maxhealth && RNG.getPercentage() < 10) {
+                self.health++
+            }
+        }, ''])
+    }
 }
 export let player = new Player(
-    "player",
-    '@', 'goldenrod',
+    new Tile('@', 'goldenrod'),
     {
         desc: 'yourself',
         speed: 100,
         sight: 10,
         maxhealth: 20,
+        maxmana: 10,
         weapons: [
             [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
         ]

@@ -23,7 +23,7 @@ let game = new Game(display, [
     ], [
         ["Play!", () => {
             player.health = player.props.maxhealth
-            game.push(new LevelScreen(player, new Level(game, 200, 200, 40, Digger)))
+            game.push(new LevelScreen(player, new Level(game, 200, 200, 50, Digger)))
         }],
         ["Help", () => {
             game.push(new HelpScreen())

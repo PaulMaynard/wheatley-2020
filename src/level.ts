@@ -2,7 +2,7 @@ import Dungeon from './lib/ROT/map/dungeon.js'
 import { RNG, KEYS, Display, Color } from './lib/ROT/index.js'
 import Tile, { tiles } from './tile.js'
 import Screen from './screen.js'
-import Monster, { genMonster } from './monster.js'
+import Monster, { genMonster, Player } from './monster.js'
 import Point from './point.js'
 import FOV from './lib/ROT/fov/fov.js'
 import Scheduler from './lib/ROT/scheduler/scheduler.js'
@@ -93,7 +93,7 @@ export class Level {
 
 export class LevelScreen extends Screen {
     center: Point
-    constructor(public player: Monster, public level: Level) {
+    constructor(public player: Player, public level: Level) {
         super()
         this.center = level.start
     }
@@ -136,19 +136,24 @@ export class LevelScreen extends Screen {
                         let tile = this.level.tile(po)
                         let col = Color.fromString(tile.fg)
                         col = Color.interpolate(col, Color.fromString('gray'),
-                            vis * .05)
+                            vis * .03)
                         tile.draw(display, p, Color.toHex(col))
                     }
                 }
             }
         }
-        // this.level.monsters.forEach(mon => {
-        //     if (this.level.seen[mon.pos.y][mon.pos.x]) {
-        //         mon.draw(display, mon.pos.minus(offset))
-        //     }
-        // })
-        display.drawText(0, 0, grade(this.player.health, this.player.props.maxhealth) + ' (' +
+        // render player stats
+        display.drawText(dim.x - 19, 1,
+            'Grade: ' + grade(this.player.health, this.player.props.maxhealth) + ' (' +
             this.player.health + '/' + this.player.props.maxhealth + ')')
+        display.drawText(dim.x - 19, 2,
+            'Will to live: ' + this.player.mana + '/' + this.player.props.maxmana)
+        let i = 4
+        for (let [_, name] of this.player.effects) {
+            if (name) {
+                display.drawText(dim.x - 19, i++, name)
+            }
+        }
     }
     handle(key: number) {
         let [x, y] = this.player.pos
