@@ -15,6 +15,7 @@ export enum Damage {
     RECURSION = 'recursion',
     CS = 'computer',
     LITERATURE = 'literature',
+    ART = 'art',
     RELIGION = 'religion',
     ANIME = 'anime',
     CRINGE = 'cringe',
@@ -34,6 +35,7 @@ let deaths: {[d in Damage]?: [string, string][]} = {
     [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber']],
     [Damage.COVID]: [[' die of Coronavirus', ' dies of Coronavirus']],
     [Damage.LOGIC]: [[' are destroyed by facts and logic', ' is destroyed by facts and logic']],
+    [Damage.ART]: [['graduate from art school!', 'graduates from art school!']],
 }
 
 export type Attack = [Die, (string | [string, string])[], Damage]
@@ -305,6 +307,27 @@ namespace Monster {
         }
     }]
     monsters.push(student)
+    export let art: MonSpec = [.1, 'art student', '@', 'pink', '',{
+        desc: 'an art student',
+        friendly: true,
+        defsight: 10,
+        maxhealth: 6,
+        attacks: [
+            [die('1d12'), [
+                'coughs on', 'sneezes at', 'breathes on'
+            ], Damage.COVID],
+            [die('1d6+1'), [
+                ['turns', ' into an abstract work of art!'],
+                ['paints', ' a bigger picture']
+            ], Damage.ART]
+        ],
+        resistance: {
+            [Damage.MATH]: -2,
+            [Damage.CS]: -2,
+            [Damage.LECTURE]: -2,
+            [Damage.WEED]: 2
+        }
+    }]
 }
 let weight = 0
 for (let n in monsters) {
