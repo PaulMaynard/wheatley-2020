@@ -47,6 +47,7 @@ export interface MonsterProps extends TileProps {
     defsight?: number
     attacks?: Attack[]
     resistance?: {[d in Damage]?: number}
+    lines?: string[]
 }
 
 class Monster extends Tile {
@@ -76,7 +77,11 @@ class Monster extends Tile {
         for (let [eff, _] of this.effects) {
             eff(this, level)
         }
-        if (!(this.props.inactive || this.isPlayer)) {
+        if (level.seen[this.pos.y][this.pos.x] > 0 && this.props.lines && RNG.getUniformInt(0, 1)) {
+            level.game.log('The ' + this.name + ' says "' +
+                RNG.getItem(this.props.lines) + '"')
+        }
+        if (!this.props.inactive && !this.isPlayer) {
             let mv: Point | undefined = undefined
             if (!this.props.friendly) {
                 let ppos: Point | null = null
@@ -217,7 +222,8 @@ namespace Monster {
         ], Damage.POISON]],
         resistance: {
             [Damage.WEED]: -2
-        }
+        },
+        lines: ['BZZZZZZZ']
     }]
     monsters.push(bee)
     export let wasp: MonSpec = [.1, 'wasp', 'w', 'yellow', '',{
@@ -261,7 +267,11 @@ namespace Monster {
         resistance: {
             [Damage.LECTURE]: 2,
             [Damage.RECURSION]: 3
-        }
+        },
+        lines: [
+            'The proof is trivial!',
+            'Let ε > 0, then...'
+        ]
     }]
     monsters.push(mprof)
     export let preacher: MonSpec = [.1, 'preacher', 'P', 'yellow', '',{
@@ -273,7 +283,14 @@ namespace Monster {
         ], Damage.RELIGION]],
         resistance: {
             [Damage.LOGIC]: 4
-        }
+        },
+        lines: [
+            "Do you belive?",
+            "Evolution is a lie!",
+            "Your 'science' can't explain clouds!",
+            "God hates you!",
+            "God loves you!",
+        ]
     }]
     monsters.push(preacher)
     export let student: MonSpec = [.2, 'student', '@', 'green', '',{

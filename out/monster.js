@@ -53,7 +53,11 @@ class Monster extends Tile {
         for (let [eff, _] of this.effects) {
             eff(this, level);
         }
-        if (!(this.props.inactive || this.isPlayer)) {
+        if (level.seen[this.pos.y][this.pos.x] > 0 && this.props.lines && RNG.getUniformInt(0, 1)) {
+            level.game.log('The ' + this.name + ' says "' +
+                RNG.getItem(this.props.lines) + '"');
+        }
+        if (!this.props.inactive && !this.isPlayer) {
             let mv = undefined;
             if (!this.props.friendly) {
                 let ppos = null;
@@ -198,7 +202,8 @@ export var monsters = [];
                     ], Damage.POISON]],
             resistance: {
                 [Damage.WEED]: -2
-            }
+            },
+            lines: ['BZZZZZZZ']
         }];
     monsters.push(Monster.bee);
     Monster.wasp = [.1, 'wasp', 'w', 'yellow', '', {
@@ -242,7 +247,11 @@ export var monsters = [];
             resistance: {
                 [Damage.LECTURE]: 2,
                 [Damage.RECURSION]: 3
-            }
+            },
+            lines: [
+                'The proof is trivial!',
+                'Let ε > 0, then...'
+            ]
         }];
     monsters.push(Monster.mprof);
     Monster.preacher = [.1, 'preacher', 'P', 'yellow', '', {
@@ -254,7 +263,14 @@ export var monsters = [];
                     ], Damage.RELIGION]],
             resistance: {
                 [Damage.LOGIC]: 4
-            }
+            },
+            lines: [
+                "Do you belive?",
+                "Evolution is a lie!",
+                "Your 'science' can't explain clouds!",
+                "God hates you!",
+                "God loves you!",
+            ]
         }];
     monsters.push(Monster.preacher);
     Monster.student = [.2, 'student', '@', 'green', '', {
