@@ -2,7 +2,7 @@ import Map, { CreateCallback } from "./lib/ROT/map/map.js"
 import { RNG } from "./lib/ROT/index.js"
 import Dungeon from "./lib/ROT/map/dungeon.js"
 import Tile from "./tile.js"
-import Monster, { monsters, mkMonster } from "./monster.js"
+import Monster, { MonSpec, mkMonster } from "./monster.js"
 import Item from "./item.js"
 
 export enum Feature {
@@ -253,7 +253,13 @@ export default class WheatleyGen extends Gen {
                 if (h == prefab.length && w == prefab[0].length) {
                     for (let y = 0; y < prefab.length; y++) {
                         for (let x = 0; x < prefab[y].length; x++) {
-                            r[y][x][0] = ts[prefab[y][x]] ?? Tile.floor
+                            let t = ts[prefab[y][x]] ?? Tile.floor
+                            if (t instanceof Array) {
+                                r[y][x][0] = Tile.floor
+                                r[y][x][1] = mkMonster(t)
+                            } else {
+                                r[y][x][0] = t
+                            }
                         }
                     }
                     done = true
@@ -317,7 +323,7 @@ let prefabs = [
         '#########',
     ]
 ]
-let ts: {[t: string]: Tile} = {
+let ts: {[t: string]: Tile | MonSpec} = {
     '#': Tile.wall,
     '.': Tile.floor,
     '+': Tile.door,

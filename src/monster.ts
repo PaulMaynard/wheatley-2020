@@ -3,7 +3,6 @@ import Point from './point.js'
 import { RNG, Util } from './lib/ROT/index.js'
 import { Level } from './level.js'
 import { Die, die } from './dice.js'
-import Item from './item.js'
 
 export enum Damage {
     PHYSICAL = 'physical',
@@ -36,7 +35,7 @@ let deaths: {[d in Damage]?: [string, string][]} = {
 
 export type Attack = [Die, (string | [string, string])[], Damage]
 
-interface MonsterProps extends TileProps {
+export interface MonsterProps extends TileProps {
     speed?: number
     inactive?: boolean
     friendly?: boolean
@@ -74,14 +73,14 @@ class Monster extends Tile {
         for (let [eff, _] of this.effects) {
             eff(this, level)
         }
-        if (!(this.props.inactive || this instanceof Player)) {
+        if (!(this.props.inactive || this.isPlayer)) {
             let mv: Point | undefined = undefined
             if (!this.props.friendly) {
                 let ppos: Point | null = null
                 if (1 < 0) ppos = Point.origin // type hackery because TS cant see inside the callback
                 level.fov.compute(this.pos.x, this.pos.y, this.sight, (x, y, v) => {
                     let p = new Point(x, y)
-                    if (level.in(p) && level.tile(p) == player) {
+                    if (level.in(p) && level.tile(p).isPlayer) {
                         ppos = p
                     }
                 })
@@ -143,16 +142,16 @@ class Monster extends Tile {
         if (typeof weap == 'string') {
             weap = [weap, '']
         }
-        if (this instanceof Player) {
+        if (this.isPlayer) {
             msgs.push('You ' + weap[0] + ' the ' + mon.name + weap[1])
-        } else if (mon instanceof Player) {
+        } else if (monthis.isPlayer) {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' you' + weap[1])
         } else {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
             let death = RNG.getItem(deaths[weapon[2]] ?? [[' die', ' dies']])
-            if (mon instanceof Player) {
+            if (monthis.isPlayer) {
                 msgs.push('You' + death[0] + '!')
             } else {
                 msgs.push('The ' + mon.name + death[1] + '!')
@@ -162,7 +161,7 @@ class Monster extends Tile {
     }
 }
 export default Monster
-type MonSpec = [number, string, string, string, string, MonsterProps]
+export type MonSpec = [number, string, string, string, string, MonsterProps]
 
 export function mkMonster(m: MonSpec): Monster {
     let [w, ...as] = m
@@ -298,54 +297,3 @@ export function genMonster() {
     }
     throw Error('impossible')
 }
-
-interface PlayerProps extends MonsterProps {
-}
-
-export class Player extends Monster {
-    props: PlayerProps
-    mana: number
-    weapon: Item | undefined
-    // items: Item[]
-    constructor(t: Tile, props: PlayerProps) {
-        super('player', t.ch, t.fg, t.bg, props)
-        this.props = props
-        this.mana = props.maxmana ?? 1
-        this.effects.push([(self) => {
-            if (self.props.maxhealth && self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
-                self.health++
-            }
-        }, ''])
-        this.effects.push([(self, l) => {
-            if (RNG.getPercentage() <= 1) {
-                l.game.madness++
-            }
-        }, ''])
-    }
-    getAttack(): Attack {
-        if (this.weapon?.props.attack) {
-            return this.weapon.props.attack
-        } else {
-            return super.getAttack()
-        }
-    }
-}
-export let player = new Player(
-    new Tile('@', 'goldenrod'),
-    {
-        desc: 'yourself',
-        speed: 100,
-        defsight: 10,
-        maxhealth: 20,
-        maxmana: 10,
-        attacks: [
-            [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
-        ]
-    }
-)
-player.weapon = new Item('slide rule', '=', 'yellow', '', {
-    desc: 'a slide rule',
-    attack: [die('2d7'), [
-        'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
-    ], Damage.MATH]
-})

@@ -77,7 +77,11 @@ class Sum extends Die {
         this.amt = dice.reduce((a, b) => a + b.amt, 0);
     }
     rolls() {
-        return this.dice.reduce((rs, r) => rs.concat(...r.rolls()), []);
+        let rs = [];
+        for (let d of this.dice) {
+            rs.push(...d.rolls());
+        }
+        return rs;
     }
     plus(d) {
         return new Sum(this.dice.concat(d));

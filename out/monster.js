@@ -2,7 +2,6 @@ import Tile from './tile.js';
 import Point from './point.js';
 import { RNG } from './lib/ROT/index.js';
 import { die } from './dice.js';
-import Item from './item.js';
 export var Damage;
 (function (Damage) {
     Damage["PHYSICAL"] = "physical";
@@ -51,7 +50,7 @@ class Monster extends Tile {
         for (let [eff, _] of this.effects) {
             eff(this, level);
         }
-        if (!(this.props.inactive || this instanceof Player)) {
+        if (!(this.props.inactive || this.isPlayer)) {
             let mv = undefined;
             if (!this.props.friendly) {
                 let ppos = null;
@@ -59,7 +58,7 @@ class Monster extends Tile {
                     ppos = Point.origin; // type hackery because TS cant see inside the callback
                 level.fov.compute(this.pos.x, this.pos.y, this.sight, (x, y, v) => {
                     let p = new Point(x, y);
-                    if (level.in(p) && level.tile(p) == player) {
+                    if (level.in(p) && level.tile(p).isPlayer) {
                         ppos = p;
                     }
                 });
@@ -125,10 +124,10 @@ class Monster extends Tile {
         if (typeof weap == 'string') {
             weap = [weap, ''];
         }
-        if (this instanceof Player) {
+        if (this.isPlayer) {
             msgs.push('You ' + weap[0] + ' the ' + mon.name + weap[1]);
         }
-        else if (mon instanceof Player) {
+        else if (monthis.isPlayer) {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' you' + weap[1]);
         }
         else {
@@ -136,7 +135,7 @@ class Monster extends Tile {
         }
         if (mon.health <= 0) {
             let death = RNG.getItem(deaths[weapon[2]] ?? [[' die', ' dies']]);
-            if (mon instanceof Player) {
+            if (monthis.isPlayer) {
                 msgs.push('You' + death[0] + '!');
             }
             else {
@@ -279,46 +278,4 @@ export function genMonster() {
     }
     throw Error('impossible');
 }
-export class Player extends Monster {
-    // items: Item[]
-    constructor(t, props) {
-        super('player', t.ch, t.fg, t.bg, props);
-        this.props = props;
-        this.mana = props.maxmana ?? 1;
-        this.effects.push([(self) => {
-                if (self.props.maxhealth && self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
-                    self.health++;
-                }
-            }, '']);
-        this.effects.push([(self, l) => {
-                if (RNG.getPercentage() <= 1) {
-                    l.game.madness++;
-                }
-            }, '']);
-    }
-    getAttack() {
-        if (this.weapon?.props.attack) {
-            return this.weapon.props.attack;
-        }
-        else {
-            return super.getAttack();
-        }
-    }
-}
-export let player = new Player(new Tile('@', 'goldenrod'), {
-    desc: 'yourself',
-    speed: 100,
-    defsight: 10,
-    maxhealth: 20,
-    maxmana: 10,
-    attacks: [
-        [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
-    ]
-});
-player.weapon = new Item('slide rule', '=', 'yellow', '', {
-    desc: 'a slide rule',
-    attack: [die('2d7'), [
-            'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
-        ], Damage.MATH]
-});
 //# sourceMappingURL=monster.js.map

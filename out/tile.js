@@ -4,6 +4,7 @@ class Tile {
         this.fg = fg;
         this.bg = bg;
         this.props = props;
+        this.isPlayer = false;
     }
     draw(display, p, fg = this.fg, bg = this.bg) {
         display.draw(p.x, p.y, this.ch, fg, bg);

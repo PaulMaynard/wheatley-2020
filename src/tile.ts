@@ -13,6 +13,7 @@ export interface TileProps {
 }
 
 class Tile {
+    isPlayer = false
     constructor(
         public ch: string,
         public fg: string,

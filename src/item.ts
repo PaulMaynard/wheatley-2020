@@ -1,6 +1,6 @@
 import Tile, { TileProps } from "./tile.js";
-import { Die } from "./dice.js";
-import { Attack } from "./monster.js";
+import { Die, die } from "./dice.js";
+import { Attack, Damage } from "./monster.js";
 import Point from "./point.js";
 
 interface ItemProps extends TileProps {
@@ -15,6 +15,24 @@ class Item extends Tile {
         this.props = props
     }
 }
-namespace Item {}
+console.log(Damage)
+export let items = [
+    new Item('burrito', '=', 'tan', '', {
+        desc: 'a monoid in the category of endofunctors',
+        attack: [die('1d8'), [
+            'bind', 'recurse on',
+            ['check', ' for termination'],
+            ['lift', ' into a monadic context'],
+            'pattern match on',
+            'purify'
+        ], 'recursion']
+    }),
+    new Item('slide rule', '=', 'yellow', '', {
+        desc: 'a slide rule',
+        attack: [die('2d7'), [
+            'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
+        ], 'math']
+    })
+]
 
 export default Item

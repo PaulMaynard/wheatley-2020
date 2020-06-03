@@ -2,7 +2,7 @@ import Dungeon from './lib/ROT/map/dungeon.js'
 import { RNG, KEYS, Display, Color } from './lib/ROT/index.js'
 import Tile from './tile.js'
 import Screen from './screen.js'
-import Monster, { genMonster, Player } from './monster.js'
+import Monster, { genMonster } from './monster.js'
 import Point from './point.js'
 import FOV from './lib/ROT/fov/fov.js'
 import Scheduler from './lib/ROT/scheduler/scheduler.js'
@@ -12,6 +12,7 @@ import HelpScreen from './help.js'
 import PreciseShadowcasting from './lib/ROT/fov/precise-shadowcasting.js'
 import { Gen } from './gen.js'
 import Item from './item.js'
+import { Player } from './player.js'
 
 
 export class Level {
