@@ -130,7 +130,7 @@ class Monster extends Tile {
         if (this.isPlayer) {
             msgs.push('You ' + weap[0] + ' the ' + mon.name + weap[1]);
         }
-        else if (mon.this.isPlayer) {
+        else if (mon.isPlayer) {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' you' + weap[1]);
         }
         else {
