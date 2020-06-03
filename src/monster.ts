@@ -22,16 +22,16 @@ export enum Damage {
     COVID = 'coronavirus',
     LOGIC = 'logic'
 }
-let deaths: {[d in Damage]?: [string, string]} = {
-    [Damage.LECTURE]: [' have failed', ' has failed'],
-    [Damage.MATH]: [' are left as an exercise for the reader', ' is left as an exercise for the reader'],
-    [Damage.RECURSION]: ['r stack has overflowed', "'s stack has overflowed"],
-    [Damage.CS]: [' have been garbage collected', 'has been garbage collected'],
-    [Damage.RELIGION]: [' are condemned to hell', ' is condemned to hell'],
-    [Damage.ANIME]: [' are sent to the shadow realm!!', ' is sent to the shadow realm!!'],
-    [Damage.CRINGE]: [' loose subscriber', ' looses subscriber'],
-    [Damage.COVID]: [' die of Coronavirus', ' dies of Coronavirus'],
-    [Damage.LOGIC]: [' are destroyed by facts and logic', ' is destroyed by facts and logic'],
+let deaths: {[d in Damage]?: [string, string][]} = {
+    [Damage.LECTURE]: [[' have failed', ' has failed']],
+    [Damage.MATH]: [[' are left as an exercise for the reader', ' is left as an exercise for the reader']],
+    [Damage.RECURSION]: [['r stack has overflowed', "'s stack has overflowed"]],
+    [Damage.CS]: [[' have been garbage collected', 'has been garbage collected']],
+    [Damage.RELIGION]: [[' are condemned to hell', ' is condemned to hell']],
+    [Damage.ANIME]: [[' are sent to the shadow realm!!', ' is sent to the shadow realm!!']],
+    [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber']],
+    [Damage.COVID]: [[' die of Coronavirus', ' dies of Coronavirus']],
+    [Damage.LOGIC]: [[' are destroyed by facts and logic', ' is destroyed by facts and logic']],
 }
 
 export type Attack = [Die, (string | [string, string])[], Damage]
@@ -151,12 +151,12 @@ class Monster extends Tile {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
-            let death = deaths[weapon[2]] || [' die', ' dies']
+            let death = RNG.getItem(deaths[weapon[2]] ?? [[' die', ' dies']])
             if (mon instanceof Player) {
                 msgs.push('You' + death[0] + '!')
             } else {
                 msgs.push('The ' + mon.name + death[1] + '!')
-                }
+            }
         }
         return msgs
     }

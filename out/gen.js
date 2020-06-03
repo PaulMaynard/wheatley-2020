@@ -193,8 +193,8 @@ export default class WheatleyGen extends Gen {
         }
     }
     _mkroom(xmin, xmax, ymin, ymax) {
-        let w = Math.max(1, xmin + RNG.getUniformInt(-1, 2));
-        let h = ymin;
+        let w = Math.max(3, xmin + RNG.getUniformInt(-1, 2));
+        let h = ymin + RNG.getUniformInt(0, 2);
         if (xmax < xmin * 2) {
             w = xmax;
         }
@@ -208,18 +208,40 @@ export default class WheatleyGen extends Gen {
                 r[y][x] = [Tile.floor, undefined, undefined];
             }
         }
-        for (let y = 0; y < h; y++) {
-            if (w > 0) {
+        if (w > 0) {
+            // walls
+            for (let y = 0; y < h; y++) {
                 r[y][0][0] = Tile.wall;
                 r[y][w - 1][0] = Tile.wall;
             }
-        }
-        for (let x = 1; x < w - 1; x++) {
-            r[0][x][0] = Tile.wall;
-            r[h - 1][x][0] = Tile.wall;
+            for (let x = 1; x < w - 1; x++) {
+                r[0][x][0] = Tile.wall;
+                r[h - 1][x][0] = Tile.wall;
+            }
+            // doors
+            if (RNG.getUniformInt(0, 1)) {
+                r[0][1][0] = Tile.door;
+            }
+            else {
+                r[0][w - 2][0] = Tile.door;
+            }
         }
         let rtype = RNG.getPercentage();
-        if (rtype <= 100 && w > 5 && h > 7) { // regular classroom
+        let done = false;
+        if (rtype <= 100) {
+            for (let prefab of RNG.shuffle(prefabs)) {
+                if (h == prefab.length && w == prefab[0].length) {
+                    for (let y = 0; y < prefab.length; y++) {
+                        for (let x = 0; x < prefab[y].length; x++) {
+                            r[y][x][0] = ts[prefab[y][x]] ?? Tile.floor;
+                        }
+                    }
+                    done = true;
+                    break;
+                }
+            }
+        }
+        if (!done && rtype <= 90 && w > 5 && h > 7) { // regular classroom
             // monsters
             // furniture
             for (let x = 2; x < w - 2; x++) {
@@ -237,14 +259,7 @@ export default class WheatleyGen extends Gen {
                     }
                 }
             }
-            // walls
-            // doors
-            if (RNG.getUniformInt(0, 1)) {
-                r[0][1][0] = Tile.door;
-            }
-            else {
-                r[0][w - 2][0] = Tile.door;
-            }
+            // extra doors
             if (h == ymax && RNG.getUniformInt(0, 1)) {
                 r[h - 1][RNG.getUniformInt(1, w - 2)][0] = Tile.door;
             }
@@ -258,4 +273,35 @@ export default class WheatleyGen extends Gen {
         return r;
     }
 }
+let prefabs = [
+    [
+        '####+####',
+        '#.......#',
+        '#.R...R.#',
+        '#.......#',
+        '#.......#',
+        '#.R...R.#',
+        '#..RRR..#',
+        '#.......#',
+        '#########',
+    ],
+    [
+        '####+####',
+        '#.......#',
+        '#.|..||.#',
+        '#.......#',
+        '#.||.|-.#',
+        '#.......#',
+        '#########',
+    ]
+];
+let ts = {
+    '#': Tile.wall,
+    '.': Tile.floor,
+    '+': Tile.door,
+    'R': Tile.desk,
+    '|': Tile.vboard,
+    '-': Tile.hboard,
+};
+console.log(prefabs[1][0].length);
 //# sourceMappingURL=gen.js.map

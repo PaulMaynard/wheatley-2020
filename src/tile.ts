@@ -30,7 +30,7 @@ namespace Tile {
         impassable: true,
         opaque: true
     })
-    export let floor = new Tile('.', 'white', '', {
+    export let floor = new Tile('.', 'lightgray', '', {
         desc: 'a floor'
     })
     export let opendoor = new Tile('\'', 'brown', '', {
@@ -56,6 +56,14 @@ namespace Tile {
     })
     vboard.props.flip = hboard
     export let desk = new Tile('я', 'brown', '', {
+        desc: 'a desk',
+        impassable: false,
+    })
+    export let toilet = new Tile('0', 'white', '', {
+        desc: 'a desk',
+        impassable: false,
+    })
+    export let sink = new Tile('%', 'white', '', {
         desc: 'a desk',
         impassable: false,
     })

@@ -15,7 +15,7 @@ class Tile {
         impassable: true,
         opaque: true
     });
-    Tile.floor = new Tile('.', 'white', '', {
+    Tile.floor = new Tile('.', 'lightgray', '', {
         desc: 'a floor'
     });
     Tile.opendoor = new Tile('\'', 'brown', '', {
@@ -41,6 +41,14 @@ class Tile {
     });
     Tile.vboard.props.flip = Tile.hboard;
     Tile.desk = new Tile('я', 'brown', '', {
+        desc: 'a desk',
+        impassable: false,
+    });
+    Tile.toilet = new Tile('0', 'white', '', {
+        desc: 'a desk',
+        impassable: false,
+    });
+    Tile.sink = new Tile('%', 'white', '', {
         desc: 'a desk',
         impassable: false,
     });

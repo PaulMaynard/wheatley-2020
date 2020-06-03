@@ -5,29 +5,29 @@ import { Game } from "./game.js";
 import { LevelScreen, Level } from "./level.js";
 import { player } from "./monster.js";
 import WheatleyGen from "./gen.js";
+import Tile from "./tile.js";
 // Display.Rect.cache = true
-// let deb = new Display ({
-//     width: 200,
-//     height: 200,
-//     fontSize: 4,
-//     forceSquareRatio: true
-// })
-// document.body.appendChild(deb.getContainer())
-// document.body.appendChild(document.createElement('br'))
-// let w = new WheatleyGen(200, 200, 7, 6)
-// let colors = ['white', 'gray', 'red']
-// console.log(w)
-// // w.create(deb.DEBUG)
-// w.create((x, y, i) => {
-//     deb.draw(x, y, ' ', '', colors[i]);
-// })
-// console.log('done')
+let deb = new Display({
+    width: 200,
+    height: 200,
+    fontSize: 4,
+    forceSquareRatio: true
+});
+document.body.appendChild(deb.getContainer() ?? document.createTextNode("Could not create display"));
+document.body.appendChild(document.createElement('br'));
+let w = new WheatleyGen(200, 200, 7, 6);
+console.log(w);
+// w.create(deb.DEBUG)
+w.create((x, y, t) => {
+    deb.draw(x, y, ' ', '', t == Tile.wall ? 'black' : t.fg);
+});
+console.log('done');
 let display = new Display({
     width: 100,
     height: 45,
     fontSize: 18,
 });
-document.body.appendChild(display.getContainer() || document.createTextNode("Could not create display"));
+document.body.appendChild(display.getContainer() ?? document.createTextNode("Could not create display"));
 let game = new Game(display, [
     new MenuScreen([
         "+-----------------------------------+",
