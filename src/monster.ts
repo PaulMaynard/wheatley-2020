@@ -22,7 +22,7 @@ export enum Damage {
     COVID = 'coronavirus',
     LOGIC = 'logic'
 }
-let deaths: {[d in Damage]?: [string, string]} = {
+let deaths: {[d in Damage]?: [string, string][]} = {
     [Damage.LECTURE]: [[' have failed', ' has failed']],
     [Damage.MATH]: [[' are left as an exercise for the reader', ' is left as an exercise for the reader']],
     [Damage.RECURSION]: [['r stack has overflowed', "'s stack has overflowed"]],
