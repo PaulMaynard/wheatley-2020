@@ -304,7 +304,7 @@ export var monsters = [];
             desc: 'an art student',
             friendly: true,
             defsight: 10,
-            maxhealth: 6,
+            maxhealth: 10,
             attacks: [
                 [die('1d12'), [
                         'coughs on', 'sneezes at', 'breathes on'
@@ -318,7 +318,8 @@ export var monsters = [];
                 [Damage.MATH]: -2,
                 [Damage.CS]: -2,
                 [Damage.LECTURE]: -2,
-                [Damage.WEED]: 2
+                [Damage.WEED]: 2,
+                [Damage.ART]: 2
             }
         }];
     monsters.push(Monster.art);
