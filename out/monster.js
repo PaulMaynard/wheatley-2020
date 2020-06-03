@@ -152,6 +152,8 @@ export function mkMonster(m) {
 }
 export var monsters = [];
 (function (Monster) {
+    /* Monster format: [weight, name, tile, color, background, options] */
+    /* Weapon format: [damage, verbs (pre target or pre and post), type] */
     Monster.roach = [.1, 'roach', 'r', 'brown', '', {
             desc: 'a monstrous roach',
             defsight: 5,
@@ -162,6 +164,23 @@ export var monsters = [];
                     ], Damage.GROSS]],
         }];
     monsters.push(Monster.roach);
+    Monster.python = [.1, 'python', 'S', 'green', '', {
+            desc: 'a python (the language)',
+            defsight: 5,
+            maxhealth: 8,
+            attacks: [[die('1d8'), [
+                        ['mismatches', ' your version'],
+                        ['invades', 'r personal space'],
+                        ['rejects', 'r PEP'],
+                        'indents',
+                        'hashes'
+                    ], Damage.CS]],
+            resistance: {
+                [Damage.RECURSION]: -1,
+                [Damage.MATH]: 2
+            }
+        }];
+    monsters.push(Monster.python);
     Monster.bee = [.1, 'bee', 'B', 'yellow', '', {
             desc: 'a friendly bee',
             defsight: 5,

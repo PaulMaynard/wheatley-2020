@@ -171,6 +171,8 @@ export function mkMonster(m: MonSpec): Monster {
 
 export var monsters: MonSpec[] = []
 namespace Monster {
+    /* Monster format: [weight, name, tile, color, background, options] */
+    /* Weapon format: [damage, verbs (pre target or pre and post), type] */
     export let roach: MonSpec = [.1, 'roach', 'r', 'brown', '', {
         desc: 'a monstrous roach',
         defsight: 5,
@@ -181,6 +183,23 @@ namespace Monster {
         ], Damage.GROSS]],
     }]
     monsters.push(roach)
+    export let python: MonSpec = [.1, 'python', 'S', 'green', '', {
+        desc: 'a python (the language)',
+        defsight: 5,
+        maxhealth: 8,
+        attacks: [[die('1d8'), [
+            ['mismatches', ' your version'],
+            ['invades', 'r personal space'],
+            ['rejects', 'r PEP'],
+            'indents',
+            'hashes'
+        ], Damage.CS]],
+        resistance: {
+            [Damage.RECURSION]: -1,
+            [Damage.MATH]: 2
+        }
+    }]
+    monsters.push(python)
     export let bee: MonSpec = [.1, 'bee', 'B', 'yellow', '', {
         desc: 'a friendly bee',
         defsight: 5,
