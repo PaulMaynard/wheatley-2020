@@ -2,6 +2,7 @@ import Tile from './tile.js';
 import Point from './point.js';
 import { RNG } from './lib/ROT/index.js';
 import { die } from './dice.js';
+import Item from './item.js';
 export var Damage;
 (function (Damage) {
     Damage["PHYSICAL"] = "physical";
@@ -169,7 +170,7 @@ export var monsters = [];
             defsight: 5,
             maxhealth: 8,
             attacks: [[die('1d8'), [
-                        ['mismatches', ' your version'],
+                        ['mismatches', 'r version'],
                         ['invades', 'r personal space'],
                         ['rejects', 'r PEP'],
                         'indents',
@@ -313,5 +314,11 @@ export let player = new Player(new Tile('@', 'goldenrod'), {
     attacks: [
         [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
     ]
+});
+player.weapon = new Item('slide rule', '=', 'yellow', '', {
+    desc: 'a slide rule',
+    attack: [die('2d7'), [
+            'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
+        ], Damage.MATH]
 });
 //# sourceMappingURL=monster.js.map

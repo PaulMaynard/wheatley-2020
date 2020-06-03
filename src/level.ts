@@ -167,11 +167,22 @@ export class LevelScreen extends Screen {
         }
         // render player stats
         display.drawText(dim.x - 19, 1,
-            'Grade: ' + grade(this.player.health, this.player.props.maxhealth) + ' (' +
+            'Grade: ' + grade(this.player.health, this.player.props.maxhealth ?? 1) + ' (' +
             this.player.health + '/' + this.player.props.maxhealth + ')')
         display.drawText(dim.x - 19, 2,
             'Will to live: ' + this.player.mana + '/' + this.player.props.maxmana)
-        let i = 4
+        if (this.player.weapon) {
+            let w = this.player.weapon
+            w.draw(display, new Point(dim.x - 19, 4))
+            display.drawText(dim.x - 17, 4,
+                w.name + ' (' +
+                (w.props.attack?.[0] ?? 'N/A') + ' ' +
+                (w.props.attack?.[2] ?? 'N/A') + ')')
+        } else {
+            display.drawText(dim.x - 17, 4,
+                'bare hands (' + ')')
+        }
+        let i = 6
         for (let [_, name] of this.player.effects) {
             if (name) {
                 display.drawText(dim.x - 19, i++, name)

@@ -188,7 +188,7 @@ namespace Monster {
         defsight: 5,
         maxhealth: 8,
         attacks: [[die('1d8'), [
-            ['mismatches', ' your version'],
+            ['mismatches', 'r version'],
             ['invades', 'r personal space'],
             ['rejects', 'r PEP'],
             'indents',
@@ -343,3 +343,9 @@ export let player = new Player(
         ]
     }
 )
+player.weapon = new Item('slide rule', '=', 'yellow', '', {
+    desc: 'a slide rule',
+    attack: [die('2d7'), [
+        'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
+    ], Damage.MATH]
+})
