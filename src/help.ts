@@ -22,7 +22,7 @@ export default class HelpScreen extends Screen {
     }
     handle(key: number) {
         if (key == KEYS.VK_ESCAPE) {
-            this.game.pop()
+            this.game?.pop()
         }
     }
 }

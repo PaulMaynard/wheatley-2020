@@ -41,6 +41,7 @@ interface MonsterProps extends TileProps {
     inactive?: boolean
     friendly?: boolean
     maxhealth?: number
+    maxmana?: number
     defsight?: number
     attacks?: Attack[]
     resistance?: {[d in Damage]?: number}
@@ -54,30 +55,16 @@ class Monster extends Tile {
     sight: number
     active: boolean
     effects: [((m: Monster, l: Level) => void), string][]
-    constructor(name: string, tile: Tile, props: MonsterProps)
-    constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps)
-    constructor(name: string, ch: string, fg: string, props: MonsterProps)
-    constructor(
-        name: string,
-        ch: any, fg?: any, bg?: any,
-        props?: any
-    ) {
-        if (ch instanceof Tile) { // constructor 1
-            super(ch.ch, ch.fg, ch.bg, fg)
-        } else if (typeof bg == 'string') { //constructor 2
-            super(ch, fg, bg, props)
-        } else { // constructor 3
-            super(ch, fg, '', bg)
-        }
+    constructor(name: string, ch: string, fg: string, bg: string, props: MonsterProps) {
+        super(ch, fg, bg, props)
+        this.props = props
         this.name = name
         this.active = false
         this.effects = []
-        this.props = super.props
-        this.health = this.props.maxhealth == null ? 1 : this.props.maxhealth
-        if (this.props.impassable == null) {
-            this.props.impassable = true
-        }
-        this.sight = this.props.defsight || 1
+        this.health = props.maxhealth ?? 1
+
+        props.impassable = props.impassable ?? true
+        this.sight = props.defsight || 1
         this.pos = Point.origin
     }
     getSpeed(): number {
@@ -112,12 +99,9 @@ class Monster extends Tile {
                 }
             }
             if (!mv) {
-                let p = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1))
-                if (!p.equals(new Point(0, 0))) {
-                    mv = p
-                }
+                mv = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1))
             }
-            if (mv) {
+            if (!mv.equals(Point.origin)) {
                 this.move(level, this.pos.plus(mv))
             }
         }
@@ -166,7 +150,7 @@ class Monster extends Tile {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
-            let death = deaths[weapon[2]] || [' die', 'dies']
+            let death = deaths[weapon[2]] || [' die', ' dies']
             if (mon instanceof Player) {
                 msgs.push('You' + death[0] + '!')
             } else {
@@ -177,7 +161,7 @@ class Monster extends Tile {
     }
 }
 export default Monster
-type MonSpec = [number, string, string, string, MonsterProps]
+type MonSpec = [number, string, string, string, string, MonsterProps]
 
 export function mkMonster(m: MonSpec): Monster {
     let [w, ...as] = m
@@ -186,7 +170,7 @@ export function mkMonster(m: MonSpec): Monster {
 
 export var monsters: MonSpec[] = []
 namespace Monster {
-    export let roach: MonSpec = [.1, 'roach', 'r', 'brown', {
+    export let roach: MonSpec = [.1, 'roach', 'r', 'brown', '', {
         desc: 'a monstrous roach',
         defsight: 5,
         maxhealth: 5,
@@ -196,7 +180,7 @@ namespace Monster {
         ], Damage.GROSS]],
     }]
     monsters.push(roach)
-    export let bee: MonSpec = [.1, 'bee', 'B', 'yellow', {
+    export let bee: MonSpec = [.1, 'bee', 'B', 'yellow', '', {
         desc: 'a friendly bee',
         defsight: 5,
         friendly: true,
@@ -209,7 +193,7 @@ namespace Monster {
         }
     }]
     monsters.push(bee)
-    export let wasp: MonSpec = [.1, 'wasp', 'w', 'yellow', {
+    export let wasp: MonSpec = [.1, 'wasp', 'w', 'yellow', '',{
         desc: 'an angry wasp',
         defsight: 5,
         speed: 200,
@@ -220,7 +204,7 @@ namespace Monster {
         }
     }]
     monsters.push(wasp)
-    export let prof: MonSpec = [.2, 'professor', 'P', 'lightblue', {
+    export let prof: MonSpec = [.2, 'professor', 'P', 'lightblue', '',{
         desc: 'a wandering professor',
         defsight: 9,
         maxhealth: 10,
@@ -233,7 +217,7 @@ namespace Monster {
         }
     }]
     monsters.push(prof)
-    export let mprof: MonSpec = [.1, 'math professor', 'P', 'red', {
+    export let mprof: MonSpec = [.1, 'math professor', 'P', 'red', '',{
         desc: 'a math professor',
         defsight: 9,
         maxhealth: 10,
@@ -253,7 +237,7 @@ namespace Monster {
         }
     }]
     monsters.push(mprof)
-    export let preacher: MonSpec = [.1, 'preacher', 'P', 'yellow', {
+    export let preacher: MonSpec = [.1, 'preacher', 'P', 'yellow', '',{
         desc: 'a street preacher',
         defsight: 12,
         maxhealth: 10,
@@ -265,7 +249,7 @@ namespace Monster {
         }
     }]
     monsters.push(preacher)
-    export let student: MonSpec = [.2, 'student', '@', 'green', {
+    export let student: MonSpec = [.2, 'student', '@', 'green', '',{
         desc: 'a lost student',
         friendly: true,
         defsight: 10,
@@ -296,8 +280,6 @@ export function genMonster() {
 }
 
 interface PlayerProps extends MonsterProps {
-    maxmana: number
-    maxhealth: number
 }
 
 export class Player extends Monster {
@@ -306,9 +288,9 @@ export class Player extends Monster {
     weapon: Item | undefined
     // items: Item[]
     constructor(t: Tile, props: PlayerProps) {
-        super('player', t, props)
+        super('player', t.ch, t.fg, t.bg, props)
         this.props = props
-        this.mana = this.props.maxmana
+        this.mana = props.maxmana ?? 1
         this.effects.push([(self) => {
             if (self.props.maxhealth && self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                 self.health++
@@ -321,7 +303,7 @@ export class Player extends Monster {
         }, ''])
     }
     getAttack(): Attack {
-        if (this.weapon && this.weapon.props.attack) {
+        if (this.weapon?.props.attack) {
             return this.weapon.props.attack
         } else {
             return super.getAttack()

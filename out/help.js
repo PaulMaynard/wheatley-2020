@@ -19,7 +19,7 @@ export default class HelpScreen extends Screen {
     }
     handle(key) {
         if (key == KEYS.VK_ESCAPE) {
-            this.game.pop();
+            this.game?.pop();
         }
     }
 }

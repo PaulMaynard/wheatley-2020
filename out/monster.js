@@ -33,24 +33,14 @@ let deaths = {
 };
 class Monster extends Tile {
     constructor(name, ch, fg, bg, props) {
-        if (ch instanceof Tile) { // constructor 1
-            super(ch.ch, ch.fg, ch.bg, fg);
-        }
-        else if (typeof bg == 'string') { //constructor 2
-            super(ch, fg, bg, props);
-        }
-        else { // constructor 3
-            super(ch, fg, '', bg);
-        }
+        super(ch, fg, bg, props);
+        this.props = props;
         this.name = name;
         this.active = false;
         this.effects = [];
-        this.props = super.props;
-        this.health = this.props.maxhealth == null ? 1 : this.props.maxhealth;
-        if (this.props.impassable == null) {
-            this.props.impassable = true;
-        }
-        this.sight = this.props.defsight || 1;
+        this.health = props.maxhealth ?? 1;
+        props.impassable = props.impassable ?? true;
+        this.sight = props.defsight || 1;
         this.pos = Point.origin;
     }
     getSpeed() {
@@ -87,12 +77,9 @@ class Monster extends Tile {
                 }
             }
             if (!mv) {
-                let p = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1));
-                if (!p.equals(new Point(0, 0))) {
-                    mv = p;
-                }
+                mv = new Point(RNG.getUniformInt(-1, 1), RNG.getUniformInt(-1, 1));
             }
-            if (mv) {
+            if (!mv.equals(Point.origin)) {
                 this.move(level, this.pos.plus(mv));
             }
         }
@@ -145,7 +132,7 @@ class Monster extends Tile {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1]);
         }
         if (mon.health <= 0) {
-            let death = deaths[weapon[2]] || [' die', 'dies'];
+            let death = deaths[weapon[2]] || [' die', ' dies'];
             if (mon instanceof Player) {
                 msgs.push('You' + death[0] + '!');
             }
@@ -163,7 +150,7 @@ export function mkMonster(m) {
 }
 export var monsters = [];
 (function (Monster) {
-    Monster.roach = [.1, 'roach', 'r', 'brown', {
+    Monster.roach = [.1, 'roach', 'r', 'brown', '', {
             desc: 'a monstrous roach',
             defsight: 5,
             maxhealth: 5,
@@ -173,7 +160,7 @@ export var monsters = [];
                     ], Damage.GROSS]],
         }];
     monsters.push(Monster.roach);
-    Monster.bee = [.1, 'bee', 'B', 'yellow', {
+    Monster.bee = [.1, 'bee', 'B', 'yellow', '', {
             desc: 'a friendly bee',
             defsight: 5,
             friendly: true,
@@ -186,7 +173,7 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.bee);
-    Monster.wasp = [.1, 'wasp', 'w', 'yellow', {
+    Monster.wasp = [.1, 'wasp', 'w', 'yellow', '', {
             desc: 'an angry wasp',
             defsight: 5,
             speed: 200,
@@ -197,7 +184,7 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.wasp);
-    Monster.prof = [.2, 'professor', 'P', 'lightblue', {
+    Monster.prof = [.2, 'professor', 'P', 'lightblue', '', {
             desc: 'a wandering professor',
             defsight: 9,
             maxhealth: 10,
@@ -210,7 +197,7 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.prof);
-    Monster.mprof = [.1, 'math professor', 'P', 'red', {
+    Monster.mprof = [.1, 'math professor', 'P', 'red', '', {
             desc: 'a math professor',
             defsight: 9,
             maxhealth: 10,
@@ -230,7 +217,7 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.mprof);
-    Monster.preacher = [.1, 'preacher', 'P', 'yellow', {
+    Monster.preacher = [.1, 'preacher', 'P', 'yellow', '', {
             desc: 'a street preacher',
             defsight: 12,
             maxhealth: 10,
@@ -242,7 +229,7 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.preacher);
-    Monster.student = [.2, 'student', '@', 'green', {
+    Monster.student = [.2, 'student', '@', 'green', '', {
             desc: 'a lost student',
             friendly: true,
             defsight: 10,
@@ -273,9 +260,9 @@ export function genMonster() {
 export class Player extends Monster {
     // items: Item[]
     constructor(t, props) {
-        super('player', t, props);
+        super('player', t.ch, t.fg, t.bg, props);
         this.props = props;
-        this.mana = this.props.maxmana;
+        this.mana = props.maxmana ?? 1;
         this.effects.push([(self) => {
                 if (self.props.maxhealth && self.health < self.props.maxhealth && RNG.getPercentage() <= 10) {
                     self.health++;
@@ -288,7 +275,7 @@ export class Player extends Monster {
             }, '']);
     }
     getAttack() {
-        if (this.weapon && this.weapon.props.attack) {
+        if (this.weapon?.props.attack) {
             return this.weapon.props.attack;
         }
         else {

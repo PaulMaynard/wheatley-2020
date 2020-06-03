@@ -100,7 +100,7 @@ export class LevelScreen extends Screen {
     }
     enter() {
         this.level.addMonster(this.player, this.level.start);
-        this.game.log("Welcome to Wheatley! Use the arrow keys to move around, and don't forget to social distance!");
+        this.game?.log("Welcome to Wheatley! Use the arrow keys to move around, and don't forget to social distance!");
     }
     render(display) {
         let dim = new Point(display.getOptions().width - 20, display.getOptions().height - 5);
@@ -197,13 +197,13 @@ export class LevelScreen extends Screen {
                 y++;
                 break;
             case KEYS.VK_X:
-                this.game.push(new LookScreen(this, this.player.pos));
+                this.game?.push(new LookScreen(this, this.player.pos));
                 return;
             case KEYS.VK_SLASH:
-                this.game.push(new HelpScreen());
+                this.game?.push(new HelpScreen());
                 return;
             case KEYS.VK_ESCAPE:
-                this.game.pop();
+                this.game?.pop();
                 return;
             default:
                 return;
@@ -220,7 +220,7 @@ export class LevelScreen extends Screen {
         }
         this.player.act(this.level);
         if (this.player.health <= 0) {
-            this.game.pop();
+            this.game?.pop();
         }
     }
 }
@@ -320,7 +320,7 @@ class LookScreen extends Screen {
                 y++;
                 break;
             case KEYS.VK_ESCAPE:
-                this.game.pop();
+                this.game?.pop();
                 break;
             default:
                 return;

@@ -8,7 +8,7 @@ export default abstract class Screen {
     exit(): void {}
     render(display: Display): void {}
     handle(key: number): void {}
-    game: Game
+    game?: Game
 }
 
 export class MenuScreen extends Screen {

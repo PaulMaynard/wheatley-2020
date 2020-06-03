@@ -10,8 +10,8 @@ interface ItemProps extends TileProps {
 class Item extends Tile {
     props: ItemProps
     pos: Point | undefined
-    constructor(public name: string, ch: string, fg: string, props: ItemProps) {
-        super(ch, fg, props)
+    constructor(public name: string, ch: string, fg: string, bg?: string, props?: ItemProps) {
+        super(ch, fg, bg, props)
         this.props = super.props
     }
 }
