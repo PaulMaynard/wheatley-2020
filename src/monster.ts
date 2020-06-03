@@ -26,12 +26,15 @@ export enum Damage {
 }
 let deaths: {[d in Damage]?: [string, string][]} = {
     [Damage.LECTURE]: [[' have failed', ' has failed']],
-    [Damage.MATH]: [[' are left as an exercise for the reader', ' is left as an exercise for the reader']],
+    [Damage.MATH]: [[' are left as an exercise for the reader', ' is left as an exercise for the reader'],
+                    [' have approached a limit of 0/0', ' has approached a limit of 0/0'],
+                    ['r derivative is no longer constant!', "'s derivative is no longer constant!"]],
     [Damage.RECURSION]: [['r stack has overflowed', "'s stack has overflowed"]],
     [Damage.CS]: [[' have been garbage collected', ' has been garbage collected'],
                   [' have been prematurely optimized', ' has been prematurely optimized'],
-                  ['r runtime has been decreased to O(1)!', '\'s runtime has been decreased to O(1)!'],
-                  [' encountered a sanity check error.', ' encountered a sanity check error.']
+                  ['r runtime has been decreased to O(1)!', "'s runtime has been decreased to O(1)!"],
+                  [' encountered a sanity check error.', ' encountered a sanity check error.'],
+                  [" reached a stack overflow. Can't solve this one, bucko.", " reached a stack overflow. Can't solve this one, bucko."]
     ],
     [Damage.RELIGION]: [[' are condemned to hell', ' is condemned to hell']],
     [Damage.ANIME]: [[' are sent to the shadow realm!!', ' is sent to the shadow realm!!']],
@@ -321,7 +324,7 @@ namespace Monster {
     }]
     monsters.push(student)
     export let art: MonSpec = [.1, 'art student', '@', 'pink', '',{
-        desc: 'an art student',
+        desc: 'an art student, who is at a loss for words',
         friendly: true,
         defsight: 10,
         maxhealth: 10,
