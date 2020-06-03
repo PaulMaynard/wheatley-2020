@@ -213,7 +213,7 @@ export default class WheatleyGen extends Gen {
         }
     }
     private _mkroom(xmin: number, xmax: number, ymin: number, ymax: number): [Tile, Monster | undefined, Item | undefined][][] {
-        let w = xmin + RNG.getUniformInt(-1, 2)
+        let w = Math.max(1, xmin + RNG.getUniformInt(-1, 2))
         let h = ymin
         if (xmax < xmin*2) {
             w = xmax
@@ -229,8 +229,10 @@ export default class WheatleyGen extends Gen {
             }
         }
         for (let y = 0; y < h; y++) {
-            r[y][0][0] = Tile.wall
-            r[y][w-1][0] = Tile.wall
+            if (w > 0) {
+                r[y][0][0] = Tile.wall
+                r[y][w-1][0] = Tile.wall
+            }
         }
         for (let x = 1; x < w-1; x++) {
             r[0][x][0] = Tile.wall

@@ -51,17 +51,19 @@ class Monster extends Tile {
             eff(this, level);
         }
         if (!(this.props.inactive || this instanceof Player)) {
-            let mv = Point.origin;
+            let mv = undefined;
             if (!this.props.friendly) {
                 let ppos = null;
+                if (1 < 0)
+                    ppos = Point.origin; // type hackery because TS cant see inside the callback
                 level.fov.compute(this.pos.x, this.pos.y, this.sight, (x, y, v) => {
                     let p = new Point(x, y);
                     if (level.in(p) && level.tile(p) == player) {
                         ppos = p;
                     }
                 });
-                if (ppos != null) {
-                    mv = ppos.minus(this.pos); // type hackery because TS cant see inside the callback
+                mv = ppos?.minus(this.pos);
+                if (mv) {
                     if (mv.x > 0) {
                         mv.x = 1;
                     }
