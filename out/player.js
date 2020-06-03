@@ -37,14 +37,8 @@ export let player = new Player(new Tile('@', 'goldenrod'), {
     maxhealth: 20,
     maxmana: 10,
     attacks: [
-        [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on'], Damage.CRINGE]
+        [die('1d6'), ['dab on', 'yeet', 'cringe at', 'own', 'post at', 'dunk on', 'vibe check'], Damage.CRINGE]
     ]
 });
-// player.weapon = new Item('slide rule', '=', 'yellow', '', {
-//     desc: 'a slide rule',
-//     attack: [die('2d7'), [
-//         'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
-//     ], Damage.MATH]
-// })
 player.weapon = items[0];
 //# sourceMappingURL=player.js.map

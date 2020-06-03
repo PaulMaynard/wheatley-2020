@@ -17,9 +17,11 @@ export var Damage;
     Damage["ART"] = "art";
     Damage["RELIGION"] = "religion";
     Damage["ANIME"] = "anime";
+    Damage["COWBOY"] = "cowboy";
     Damage["CRINGE"] = "cringe";
     Damage["COVID"] = "coronavirus";
     Damage["LOGIC"] = "logic";
+    Damage["COMMUNISM"] = "communism";
 })(Damage || (Damage = {}));
 let deaths = {
     [Damage.LECTURE]: [[' have failed', ' has failed']],
@@ -28,10 +30,21 @@ let deaths = {
     [Damage.CS]: [[' have been garbage collected', ' has been garbage collected'],
         [' have been prematurely optimized', ' has been prematurely optimized'],
         ['r runtime has been decreased to O(1)!', '\'s runtime has been decreased to O(1)!'],
-        [' encountered a sanity check error.', ' encountered a sanity check error.']],
+        [' encountered a sanity check error.', ' encountered a sanity check error.']
+    ],
     [Damage.RELIGION]: [[' are condemned to hell', ' is condemned to hell']],
     [Damage.ANIME]: [[' are sent to the shadow realm!!', ' is sent to the shadow realm!!']],
-    [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber']],
+    [Damage.COWBOY]: [[' have yeed your last haw', ' has yeed their last haw']],
+    [Damage.CRINGE]: [
+        [' loose subscriber', ' looses subscriber'],
+        [' have failed your vibe check', ' has failed their vibe check'],
+        [' have been owned', ' has been owned'],
+        [' have been cancelled', ' has been cancelled'],
+        [' are banned', ' is banned'],
+        [' log off', ' logs off'],
+        [' have experienced a bruh moment', ' has experienced a bruh moment'],
+        [' have been turned into a corncob', ' has been turned into a corncob'],
+    ],
     [Damage.COVID]: [[' die of Coronavirus', ' dies of Coronavirus']],
     [Damage.LOGIC]: [[' are destroyed by facts and logic', ' is destroyed by facts and logic']],
     [Damage.ART]: [['graduate from art school!', 'graduates from art school!']],
@@ -308,6 +321,41 @@ export var monsters = [];
                 [Damage.WEED]: 2
             }
         }];
+    monsters.push(Monster.art);
+    Monster.zoomer = [100, 'zoomer', '@', 'red', '', {
+            desc: 'a maoist zoomer',
+            // friendly: true,
+            speed: 150,
+            defsight: 10,
+            maxhealth: 6,
+            attacks: [
+                [die('1d10'), [
+                        'dabs on', 'yeets', 'cringes at', 'owns', 'posts at', 'dunks on', 'vibe checks', 'memes on',
+                        ['notices', 'r bulge']
+                    ], Damage.CRINGE],
+                [die('5'), [
+                        'collectivizes',
+                        ['seizes', 'r means of production'],
+                        ['propagandize', ' by the deed'],
+                    ], Damage.COMMUNISM]
+            ],
+            resistance: {
+                [Damage.WEED]: 10
+            },
+            lines: [
+                "this ain't it, chief",
+                "who the fuck is scraeming 'LOG OFF' at my house. show yourself, coward. i will never log off",
+                "your fired, sir",
+                "I WILL FACE GOD AND WALK BACKWARDS INTO HELL!",
+                "look, im not saying that martin luther king jr was a gamer. that would be ludicrous. im simply saying that if games had existed at the time...",
+                "jail isnt real",
+                "This Whole Thing Smacks Of Gender",
+                "someone who is good at the economy please help me budget. my family is dying",
+                "blocked. blocked. blocked. youre all blocked. none of you are free of sin",
+                "OwO",
+            ]
+        }];
+    monsters.push(Monster.zoomer);
 })(Monster || (Monster = {}));
 let weight = 0;
 for (let n in monsters) {
