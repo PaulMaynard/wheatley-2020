@@ -317,7 +317,7 @@ let prefabs = [
         '####+####',
         '#.......#',
         '#.|..||.#',
-        '#.......#',
+        '#...A...#',
         '#.||.|-.#',
         '#.......#',
         '#########',
@@ -330,6 +330,7 @@ let ts: {[t: string]: Tile | MonSpec} = {
     'R': Tile.desk,
     '|': Tile.vboard,
     '-': Tile.hboard,
+    'A': Monster.art
 }
 
 console.log(prefabs[1][0].length)

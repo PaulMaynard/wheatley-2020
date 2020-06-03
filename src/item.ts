@@ -25,13 +25,24 @@ export let items = [
             ['lift', ' into a monadic context'],
             'pattern match on',
             'purify'
-        ], 'recursion']
+        ], Damage.RECURSION]
     }),
     new Item('slide rule', '=', 'yellow', '', {
         desc: 'a slide rule',
         attack: [die('2d7'), [
             'exponentiate', 'approximate', 'calculate', 'take the logarithm of'
-        ], 'math']
+        ], Damage.MATH]
+    }),
+    new Item('hammer and sickle', '☭', 'red', '', {
+        desc: 'the symbol of liberation of the working class',
+        attack: [die('5'), [
+            'collectivize',
+            ['seize', '\'s means of production'],
+            ['propagandize', ' by the deed'],
+            'hammer',
+            ['slash', ' with your sickle'],
+            'gulag'
+        ], Damage.COMMUNISM]
     })
 ]
 
