@@ -29,10 +29,12 @@ let deaths: {[d in Damage]?: [string, string][]} = {
     [Damage.CS]: [[' have been garbage collected', ' has been garbage collected'],
                   [' have been prematurely optimized', ' has been prematurely optimized'],
                   ['r runtime has been decreased to O(1)!', '\'s runtime has been decreased to O(1)!'],
-                  [' encountered a sanity check error.', ' encountered a sanity check error.']],
+                  [' encounter a sanity check error.', ' encounters a sanity check error.']],
     [Damage.RELIGION]: [[' are condemned to hell', ' is condemned to hell']],
     [Damage.ANIME]: [[' are sent to the shadow realm!!', ' is sent to the shadow realm!!']],
-    [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber']],
+    [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber'], 
+                      [' become a boomer', ' become a boomer'], 
+                      [' have a bruh moment', ' has a bruh moment']],
     [Damage.COVID]: [[' die of Coronavirus', ' dies of Coronavirus']],
     [Damage.LOGIC]: [[' are destroyed by facts and logic', ' is destroyed by facts and logic']],
     [Damage.ART]: [['graduate from art school!', 'graduates from art school!']],
@@ -311,7 +313,7 @@ namespace Monster {
         desc: 'an art student',
         friendly: true,
         defsight: 10,
-        maxhealth: 6,
+        maxhealth: 10,
         attacks: [
             [die('1d12'), [
                 'coughs on', 'sneezes at', 'breathes on'
@@ -325,7 +327,8 @@ namespace Monster {
             [Damage.MATH]: -2,
             [Damage.CS]: -2,
             [Damage.LECTURE]: -2,
-            [Damage.WEED]: 2
+            [Damage.WEED]: 2,
+            [Damage.ART]: 2
         }
     }]
 }
