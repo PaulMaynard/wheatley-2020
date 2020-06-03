@@ -151,13 +151,14 @@ class Monster extends Tile {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
-            let death = deaths[weapon[2]] || [' die', ' dies']
+            let death = RNG.getItem(deaths[weapon[2]] ?? [[' die', ' dies']])
             if (mon instanceof Player) {
                 msgs.push('You' + death[0] + '!')
             } else {
                 msgs.push('The ' + mon.name + death[1] + '!')
-                }
+            }
         }
+
         return msgs
     }
 }
