@@ -1,4 +1,4 @@
-import { KEYS } from "./lib/ROT/index.js";
+import { KEYS, RNG } from "./lib/ROT/index.js";
 const _noop = () => { };
 export default class Screen {
     enter() { }
@@ -11,6 +11,7 @@ export class MenuScreen extends Screen {
         super();
         this.title = title;
         this.active = 0;
+        this.animate = [200, 200, 100];
         this.options = options.map(o => (typeof o == 'string') ? [o, _noop] : o);
         this.title = title;
     }
@@ -18,7 +19,10 @@ export class MenuScreen extends Screen {
         var x = (display.getOptions().width >> 1);
         var y = (display.getOptions().height >> 1)
             - (this.title.length + 1);
-        this.title.forEach(line => display.drawText(x - (line.replace(/%c\{.*?\}/g, '').length >> 1), y++, line));
+        this.title.forEach(line => {
+            let offs = RNG.getPercentage() < 10 ? RNG.getUniformInt(-3, 3) : 0;
+            display.drawText(x + offs - (line.replace(/%c\{.*?\}/g, '').length >> 1), y++, line);
+        });
         y++;
         this.options.forEach(([opt, _], i) => {
             if (i == this.active) {

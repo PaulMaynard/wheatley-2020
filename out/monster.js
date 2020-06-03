@@ -322,18 +322,18 @@ export var monsters = [];
             }
         }];
     monsters.push(Monster.art);
-    Monster.zoomer = [100, 'zoomer', '@', 'red', '', {
+    Monster.zoomer = [.15, 'zoomer', '@', 'red', '', {
             desc: 'a maoist zoomer',
             // friendly: true,
             speed: 150,
             defsight: 10,
             maxhealth: 6,
             attacks: [
-                [die('1d10'), [
+                [die('1d6'), [
                         'dabs on', 'yeets', 'cringes at', 'owns', 'posts at', 'dunks on', 'vibe checks', 'memes on',
                         ['notices', 'r bulge']
                     ], Damage.CRINGE],
-                [die('5'), [
+                [die('3'), [
                         'collectivizes',
                         ['seizes', 'r means of production'],
                         ['propagandize', ' by the deed'],
@@ -343,6 +343,7 @@ export var monsters = [];
                 [Damage.WEED]: 10
             },
             lines: [
+                "ok, boomer",
                 "this ain't it, chief",
                 "who the fuck is scraeming 'LOG OFF' at my house. show yourself, coward. i will never log off",
                 "your fired, sir",

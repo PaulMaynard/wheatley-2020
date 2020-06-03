@@ -1,3 +1,4 @@
+import { RNG } from "./lib/ROT/index.js";
 export class Game {
     constructor(display, screens) {
         this.display = display;
@@ -31,6 +32,9 @@ export class Game {
         this.msgs.forEach((m, i) => {
             this.display.drawText(0, p - i, colors[i] + m + '%c{}');
         });
+        if (this.activeScreen.animate) {
+            setTimeout(() => this.render(), RNG.getItem(this.activeScreen.animate));
+        }
     }
     log(msg) {
         this.msgs.unshift(msg);

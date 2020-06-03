@@ -235,6 +235,7 @@ export default class WheatleyGen extends Gen {
                         for (let x = 0; x < prefab[y].length; x++) {
                             let t = ts[prefab[y][x]] ?? Tile.floor;
                             if (t instanceof Array) {
+                                console.log('spawning...');
                                 r[y][x][0] = Tile.floor;
                                 r[y][x][1] = mkMonster(t);
                             }

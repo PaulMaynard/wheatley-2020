@@ -1,4 +1,4 @@
-import { Display, KEYS } from "./lib/ROT/index.js";
+import { Display, KEYS, RNG } from "./lib/ROT/index.js";
 import { Game } from "./game.js";
 
 const _noop = () => {}
@@ -9,11 +9,13 @@ export default abstract class Screen {
     render(display: Display): void {}
     handle(key: number): void {}
     game?: Game
+    animate?: number[]
 }
 
 export class MenuScreen extends Screen {
-    public active: number = 0
-    public options: [string, () => void][]
+    active: number = 0
+    options: [string, () => void][]
+    animate = [200, 200, 100]
     constructor(
         public title: string[],
         options: (string | [string, () => void])[]
@@ -29,9 +31,10 @@ export class MenuScreen extends Screen {
         var y = (display.getOptions().height >> 1)
                 - (this.title.length + 1)
 
-        this.title.forEach(line =>
-            display.drawText(x - (line.replace(/%c\{.*?\}/g, '').length >> 1), y++, line)
-        )
+        this.title.forEach(line => {
+            let offs = RNG.getPercentage() < 10 ? RNG.getUniformInt(-3, 3) : 0
+            display.drawText(x + offs - (line.replace(/%c\{.*?\}/g, '').length >> 1), y++, line)
+        })
         y++
         this.options.forEach( ([opt, _], i) => {
             if (i == this.active){

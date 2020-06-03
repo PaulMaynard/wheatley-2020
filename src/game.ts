@@ -1,4 +1,4 @@
-import { Display } from "./lib/ROT/index.js"
+import { Display, RNG } from "./lib/ROT/index.js"
 import Screen from "./screen.js"
 
 
@@ -33,6 +33,9 @@ export class Game {
         this.msgs.forEach((m, i) => {
             this.display.drawText(0, p-i, colors[i] + m + '%c{}')
         });
+        if (this.activeScreen.animate) {
+            setTimeout(() => this.render(), RNG.getItem(this.activeScreen.animate))
+        }
     }
     log(msg: string) {
         this.msgs.unshift(msg)
