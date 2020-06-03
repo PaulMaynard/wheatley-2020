@@ -25,7 +25,10 @@ let deaths: {[d in Damage]?: [string, string][]} = {
     [Damage.LECTURE]: [[' have failed', ' has failed']],
     [Damage.MATH]: [[' are left as an exercise for the reader', ' is left as an exercise for the reader']],
     [Damage.RECURSION]: [['r stack has overflowed', "'s stack has overflowed"]],
-    [Damage.CS]: [[' have been garbage collected', 'has been garbage collected']],
+    [Damage.CS]: [[' have been garbage collected', ' has been garbage collected'],
+                  [' have been prematurely optimized', ' has been prematurely optimized'],
+                  ['r runtime has been decreased to O(1)!', '\'s runtime has been decreased to O(1)!'],
+                  [' encountered a sanity check error.', ' encountered a sanity check error.']],
     [Damage.RELIGION]: [[' are condemned to hell', ' is condemned to hell']],
     [Damage.ANIME]: [[' are sent to the shadow realm!!', ' is sent to the shadow realm!!']],
     [Damage.CRINGE]: [[' loose subscriber', ' looses subscriber']],
@@ -144,19 +147,20 @@ class Monster extends Tile {
         }
         if (this.isPlayer) {
             msgs.push('You ' + weap[0] + ' the ' + mon.name + weap[1])
-        } else if (monthis.isPlayer) {
+        } else if (mon.this.isPlayer) {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' you' + weap[1])
         } else {
             msgs.push('The ' + this.name + ' ' + weap[0] + ' the ' + mon.name + weap[1])
         }
         if (mon.health <= 0) {
             let death = RNG.getItem(deaths[weapon[2]] ?? [[' die', ' dies']])
-            if (monthis.isPlayer) {
+            if (mon.isPlayer) {
                 msgs.push('You' + death[0] + '!')
             } else {
                 msgs.push('The ' + mon.name + death[1] + '!')
             }
         }
+
         return msgs
     }
 }
@@ -190,6 +194,10 @@ namespace Monster {
             ['mismatches', 'r version'],
             ['invades', 'r personal space'],
             ['rejects', 'r PEP'],
+            ['inserts a tab in', 'r code'],
+            ['inserts a space in', 'r code'],
+            ['unindents', 'r function'],
+            ['deletes', 'r colon'],
             'indents',
             'hashes'
         ], Damage.CS]],
