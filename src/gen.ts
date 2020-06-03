@@ -3,6 +3,7 @@ import { RNG } from "./lib/ROT/index.js"
 import Dungeon from "./lib/ROT/map/dungeon.js"
 import Tile from "./tile.js"
 import Monster, { monsters, mkMonster } from "./monster.js"
+import Item from "./item.js"
 
 export enum Feature {
     FLOOR = 0,
@@ -19,15 +20,15 @@ export abstract class Gen {
         protected _width: number,
         protected _height: number
     ) {}
-    abstract create(cb: (x: number, y: number, contents: Tile, m?: Monster) => void): void
+    abstract create(cb: (x: number, y: number, contents: Tile, m?: Monster, i?: Item) => void): void
 }
 
 export default class WheatleyGen extends Gen {
     constructor(width: number, height: number, private level: number, private size: number) {
         super(width, height)
     }
-    create(cb: (x: number, y: number, contents: Tile, m?: Monster) => void) {
-        let cbhelper = (x: number, y: number, v: Tile, m?: Monster) => {
+    create(cb: (x: number, y: number, contents: Tile, m?: Monster, i?: Item) => void) {
+        let cbhelper = (x: number, y: number, v: Tile, m?: Monster, i?: Item) => {
             if (!(x < 0 || x >= this._width || y < 0 || y >= this._height)) {
                 cb(x, y, v, m)
             }
@@ -44,7 +45,7 @@ export default class WheatleyGen extends Gen {
             cbhelper(x, this._height-1, Tile.wall)
         }
     }
-    private _create(cb: (x: number, y: number, contents: Tile, m?: Monster) => void,
+    private _create(cb: (x: number, y: number, contents: Tile, m?: Monster, i?: Item) => void,
                     s: number, l: number, axis: boolean, x0: number, x1: number, y0: number, y1: number) {
         if (x1 < x0 || y1 < y0) return
         if (l > 1) { // hallways
@@ -211,7 +212,7 @@ export default class WheatleyGen extends Gen {
             RNG.shuffle(sides).forEach(s => s())
         }
     }
-    private _mkroom(xmin: number, xmax: number, ymin: number, ymax: number): [Tile, Monster][][] {
+    private _mkroom(xmin: number, xmax: number, ymin: number, ymax: number): [Tile, Monster | undefined, Item | undefined][][] {
         let w = xmin + RNG.getUniformInt(-1, 2)
         let h = ymin
         if (xmax < xmin*2) {
@@ -220,11 +221,11 @@ export default class WheatleyGen extends Gen {
         if (ymax < ymin*2) {
             h = ymax
         }
-        let r: [Tile, Monster][][] = new Array(h)
+        let r: [Tile, Monster | undefined, Item | undefined][][] = new Array(h)
         for (let y = 0; y < h; y++) {
             r[y] = new Array(w)
             for (let x = 0; x < w; x++) {
-                r[y][x] = [Tile.floor, undefined]
+                r[y][x] = [Tile.floor, undefined, undefined]
             }
         }
         for (let y = 0; y < h; y++) {
@@ -245,13 +246,13 @@ export default class WheatleyGen extends Gen {
             }
             let students = RNG.getPercentage() <= 10
             if (students) {
-                r[1][w>>1][1] = mkMonster(RNG.getItem([monsters.prof, monsters.mprof]))
+                r[1][w>>1][1] = mkMonster(RNG.getItem([Monster.prof, Monster.mprof]))
             }
             for (let x = RNG.getUniformInt(1,2); x < w-1; x += 2) {
                 for (let y = 3; y < h-1; y += 1) {
                     r[y][x][0] = Tile.desk
                     if (students && RNG.getPercentage() <= 40) {
-                        r[y][x][1] = mkMonster(monsters.student)
+                        r[y][x][1] = mkMonster(Monster.student)
                     }
                 }
             }

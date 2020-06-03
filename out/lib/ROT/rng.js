@@ -72,9 +72,9 @@ class RNG {
      * @returns Randomly picked item, null when length=0
      */
     getItem(array) {
-        if (!array.length) {
+        if (array.length == 0) {
             return null;
-        }
+        } // impossible case
         return array[Math.floor(this.getUniform() * array.length)];
     }
     /**

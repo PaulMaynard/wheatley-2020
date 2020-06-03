@@ -20,4 +20,5 @@ export default class Point {
     chebyshev() {
         return Math.max(Math.abs(this.x), Math.abs(this.y))
     }
+    static origin = new Point(0, 0)
 }

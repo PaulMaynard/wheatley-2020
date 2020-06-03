@@ -23,11 +23,16 @@ export class Level {
             return this.in(p) && !this.tile(p).props.opaque;
         });
         this.monsters = new Array();
+        this.items = new Array();
         let gen = generator(width, height);
-        gen.create((x, y, t, m) => {
+        gen.create((x, y, t, m, i) => {
             this.tiles[y][x] = t;
             if (m) {
                 this.addMonster(m, new Point(x, y), false);
+            }
+            if (i) {
+                this.items.push(i);
+                i.pos = new Point(x, y);
             }
         });
         while (true) {
@@ -78,6 +83,11 @@ export class Level {
                 return m;
             }
         }
+        for (let i of this.items) {
+            if (i.pos && i.pos.equals(p)) {
+                return i;
+            }
+        }
         return this.tiles[p.y][p.x];
     }
 }
@@ -90,7 +100,7 @@ export class LevelScreen extends Screen {
     }
     enter() {
         this.level.addMonster(this.player, this.level.start);
-        this.game.log("Welcome to Wheatley! Use the arow keys to move around, and don't forget to social distance!");
+        this.game?.log("Welcome to Wheatley! Use the arrow keys to move around, and don't forget to social distance!");
     }
     render(display) {
         let dim = new Point(display.getOptions().width - 20, display.getOptions().height - 5);
@@ -106,7 +116,7 @@ export class LevelScreen extends Screen {
                 }
             }
         }
-        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.props.sight, (x, y, v) => {
+        this.level.fov.compute(this.player.pos.x, this.player.pos.y, this.player.sight, (x, y, v) => {
             this.level.seen[y][x] = 1 + v;
         });
         for (let y = 0; y < dim.y - 5; y++) {
@@ -187,13 +197,13 @@ export class LevelScreen extends Screen {
                 y++;
                 break;
             case KEYS.VK_X:
-                this.game.push(new LookScreen(this, this.player.pos));
+                this.game?.push(new LookScreen(this, this.player.pos));
                 return;
             case KEYS.VK_SLASH:
-                this.game.push(new HelpScreen());
+                this.game?.push(new HelpScreen());
                 return;
             case KEYS.VK_ESCAPE:
-                this.game.pop();
+                this.game?.pop();
                 return;
             default:
                 return;
@@ -210,7 +220,7 @@ export class LevelScreen extends Screen {
         }
         this.player.act(this.level);
         if (this.player.health <= 0) {
-            this.game.pop();
+            this.game?.pop();
         }
     }
 }
@@ -310,7 +320,7 @@ class LookScreen extends Screen {
                 y++;
                 break;
             case KEYS.VK_ESCAPE:
-                this.game.pop();
+                this.game?.pop();
                 break;
             default:
                 return;

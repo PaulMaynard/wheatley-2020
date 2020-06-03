@@ -5,9 +5,6 @@ import * as Color from "../color.js";
  * @private
  */
 export default class TileGL extends Backend {
-    static isSupported() {
-        return !!document.createElement("canvas").getContext("webgl2", { preserveDrawingBuffer: true });
-    }
     constructor() {
         super();
         this._uniforms = {};
@@ -17,6 +14,9 @@ export default class TileGL extends Backend {
         catch (e) {
             alert(e.message);
         }
+    }
+    static isSupported() {
+        return !!document.createElement("canvas").getContext("webgl2", { preserveDrawingBuffer: true });
     }
     schedule(cb) { requestAnimationFrame(cb); }
     getContainer() { return this._gl.canvas; }

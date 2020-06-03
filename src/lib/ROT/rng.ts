@@ -83,8 +83,8 @@ class RNG {
 	/**
 	 * @returns Randomly picked item, null when length=0
 	 */
-	getItem<T>(array: Array<T>) {
-		if (!array.length) { return null; }
+	getItem<T>(array: Exclude<T[], []>): T {
+		if (array.length == 0) { return null as unknown as T; } // impossible case
 		return array[Math.floor(this.getUniform() * array.length)];
 	}
 
