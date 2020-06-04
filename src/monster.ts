@@ -48,7 +48,7 @@ let deaths: {[d in Damage]?: [string, string][]} = {
     ],
     [Damage.COVID]: [[' die of Coronavirus', ' dies of Coronavirus']],
     [Damage.LOGIC]: [[' are destroyed by facts and logic', ' is destroyed by facts and logic']],
-    [Damage.ART]: [['graduate from art school!', 'graduates from art school!']],
+    [Damage.ART]: [[' graduate from art school!', ' graduates from art school!']],
 }
 
 export type Attack = [Die, (string | [string, string])[], Damage]
